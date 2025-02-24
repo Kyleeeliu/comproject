@@ -112,6 +112,23 @@ class TrashTycoon {
             ]
         };
 
+        // Add non-recyclable types
+        this.trashTypes = {
+            plastic: { emoji: '🥤', recyclable: true },
+            paper: { emoji: '📰', recyclable: true },
+            metal: { emoji: '🥫', recyclable: true },
+            organic: { emoji: '🍎', recyclable: false },
+            toxic: { emoji: '☢️', recyclable: false },
+            unknown: { emoji: '❓', recyclable: false }
+        };
+
+        // Add contamination tracking
+        this.binContamination = {
+            plastic: false,
+            paper: false,
+            metal: false
+        };
+
         this.init();
     }
 
@@ -153,35 +170,81 @@ class TrashTycoon {
     }
 
     collectTrash() {
-        const activeSpots = document.querySelectorAll('.trash-spot.active');
+        const spots = document.querySelectorAll('.trash-spot');
         let totalCollected = 0;
+        let contaminated = false;
         
-        activeSpots.forEach(spot => {
-            const type = spot.dataset.type;
-            const amount = (Math.floor(Math.random() * 3) + 1) * this.baseCollectionAmount;
-            
-            this.trashItems[type] += amount;
-            totalCollected += amount;
-            
-            // Show collection animation
-            spot.classList.remove('active');
-            spot.classList.add('spawning');
-            setTimeout(() => spot.classList.remove('spawning'), 300);
+        // Check for contamination first
+        spots.forEach(spot => {
+            if (spot.dataset.type !== 'empty') {
+                const trashInfo = this.trashTypes[spot.dataset.type];
+                if (!trashInfo.recyclable) {
+                    contaminated = true;
+                }
+            }
         });
         
-        if (totalCollected > 0) {
-            this.ecoPoints += totalCollected;
-            document.getElementById('lastCollected').textContent = `${totalCollected} items`;
-            document.getElementById('collectionSpeed').textContent = 
-                `${this.baseCollectionAmount}x`;
+        if (contaminated) {
+            // Penalize for collecting contaminated materials
+            this.ecoPoints = Math.max(0, this.ecoPoints - 5);
+            
+            const notification = document.createElement('div');
+            notification.className = 'contamination-alert';
+            notification.innerHTML = `
+                <h3>⚠️ Contamination Alert!</h3>
+                <p>Area contaminated! Remove hazardous items first!</p>
+                <p class="penalty">-5 🌱</p>
+            `;
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 3000);
+        } else {
+            // Collect all recyclable items
+            spots.forEach(spot => {
+                if (spot.dataset.type !== 'empty' && this.trashTypes[spot.dataset.type].recyclable) {
+                    const type = spot.dataset.type;
+                    const amount = (Math.floor(Math.random() * 3) + 1) * this.baseCollectionAmount;
+                    this.trashItems[type] += amount;
+                    totalCollected += amount;
+                }
+            });
+
+            if (totalCollected > 0) {
+                this.ecoPoints += totalCollected;
+                document.getElementById('lastCollected').textContent = `${totalCollected} items`;
+                document.getElementById('collectionSpeed').textContent = 
+                    `${this.baseCollectionAmount}x`;
+            }
         }
+
+        // Clear all spots regardless of contamination
+        spots.forEach(spot => {
+            spot.textContent = '';
+            spot.dataset.type = 'empty';
+            spot.classList.remove('active');
+            spot.classList.add('spawning');
+            spot.onclick = null;
+            setTimeout(() => spot.classList.remove('spawning'), 300);
+        });
         
         this.updateDisplay();
         this.updateUpgradesDisplay();
         this.updateSDGProgress();
         
-        // Spawn new trash after a delay
-        setTimeout(() => this.updateCollectionZone(), 1000);
+        // Spawn new items after a delay
+        setTimeout(() => {
+            spots.forEach(spot => {
+                const types = Object.keys(this.trashTypes);
+                const randomType = types[Math.floor(Math.random() * types.length)];
+                spot.dataset.type = randomType;
+                spot.textContent = this.trashTypes[randomType].emoji;
+                spot.classList.add('active');
+                
+                spot.onclick = (e) => {
+                    e.stopPropagation();
+                    this.handleTrashClick(spot);
+                };
+            });
+        }, 500);
     }
 
     sellTrash(type) {
@@ -493,12 +556,67 @@ class TrashTycoon {
     updateCollectionZone() {
         const spots = document.querySelectorAll('.trash-spot');
         spots.forEach(spot => {
-            if (Math.random() < 0.3) { // 30% chance for each spot
-                spot.classList.add('active');
-            } else {
-                spot.classList.remove('active');
+            // Only update empty spots
+            if (spot.dataset.type === 'empty') {
+                if (Math.random() < 0.3) { // 30% chance for each empty spot
+                    const types = Object.keys(this.trashTypes);
+                    const randomType = types[Math.floor(Math.random() * types.length)];
+                    spot.dataset.type = randomType;
+                    spot.textContent = this.trashTypes[randomType].emoji;
+                    spot.classList.add('active');
+                    
+                    // Add click handler for manual removal
+                    spot.onclick = (e) => {
+                        e.stopPropagation();
+                        this.handleTrashClick(spot);
+                    };
+                }
             }
         });
+    }
+
+    handleTrashClick(spot) {
+        const type = spot.dataset.type;
+        const trashInfo = this.trashTypes[type];
+        
+        if (!trashInfo.recyclable) {
+            // Add eco points for responsible disposal
+            this.ecoPoints += 2;
+            this.showRemovalAnimation(spot, '+2 🌱', '#43a047');
+        } else {
+            // Penalize for removing recyclable items
+            this.ecoPoints = Math.max(0, this.ecoPoints - 1);
+            this.showRemovalAnimation(spot, '-1 🌱', '#e53935');
+        }
+        
+        // Clear the spot
+        spot.textContent = '';
+        spot.dataset.type = 'empty';
+        spot.classList.remove('active');
+        spot.classList.add('spawning');
+        spot.onclick = null;
+        
+        this.updateDisplay();
+        this.updateSDGProgress();
+    }
+
+    showRemovalAnimation(spot, text, color) {
+        const rect = spot.getBoundingClientRect();
+        const notification = document.createElement('div');
+        notification.textContent = text;
+        notification.style.cssText = `
+            position: fixed;
+            left: ${rect.left + rect.width/2}px;
+            top: ${rect.top}px;
+            transform: translate(-50%, -100%);
+            color: ${color};
+            font-weight: bold;
+            animation: fadeUp 1s ease-out;
+            pointer-events: none;
+            z-index: 1000;
+        `;
+        document.body.appendChild(notification);
+        setTimeout(() => notification.remove(), 1000);
     }
 }
 
