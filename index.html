@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trash Tycoon</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="game-container">
+        <!-- Header Section -->
+        <header>
+            <h1>Trash Tycoon</h1>
+            <div class="resources">
+                <div class="money">💰 $<span id="money">0</span></div>
+                <div class="eco-points">🌱 <span id="ecoPoints">0</span></div>
+            </div>
+        </header>
+
+        <!-- SDG Progress -->
+        <div class="sdg-progress">
+            <h2>Sustainability Goals</h2>
+            <div class="sdg-badges">
+                <div class="sdg-badge" data-sdg="11">
+                    <img src="https://sdgs.un.org/sites/default/files/goals/E_SDG_Icons-11.jpg" alt="SDG 11">
+                    <div class="sdg-info">
+                        <h3>Sustainable Cities</h3>
+                        <div class="progress-bar">
+                            <div class="progress" id="sdg11-progress" style="width: 0%"></div>
+                        </div>
+                        <span class="progress-text">0%</span>
+                        <div class="quest-list">
+                            <div class="quest" data-quest="cleanCity">
+                                <p>Clean City Initiative</p>
+                                <small>Clean up 100 pieces of trash</small>
+                            </div>
+                            <div class="quest" data-quest="recyclingCenter">
+                                <p>Build Recycling Centers</p>
+                                <small>Sell 50 pieces of each material</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="sdg-badge" data-sdg="12">
+                    <img src="https://sdgs.un.org/sites/default/files/goals/E_SDG_Icons-12.jpg" alt="SDG 12">
+                    <div class="sdg-info">
+                        <h3>Responsible Consumption</h3>
+                        <div class="progress-bar">
+                            <div class="progress" id="sdg12-progress" style="width: 0%"></div>
+                        </div>
+                        <span class="progress-text">0%</span>
+                    </div>
+                </div>
+                <div class="sdg-badge" data-sdg="13">
+                    <img src="https://sdgs.un.org/sites/default/files/goals/E_SDG_Icons-13.jpg" alt="SDG 13">
+                    <div class="sdg-info">
+                        <h3>Climate Action</h3>
+                        <div class="progress-bar">
+                            <div class="progress" id="sdg13-progress" style="width: 0%"></div>
+                        </div>
+                        <span class="progress-text">0%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Game Area -->
+        <div class="game-area">
+            <!-- Collection Area -->
+            <div class="collection-area">
+                <h2>Collection Zone</h2>
+                <div id="trashSpawnArea"></div>
+                <button id="collectTrash">Collect Trash</button>
+            </div>
+
+            <!-- Sorting Area -->
+            <div class="sorting-area">
+                <h2>Sorting Bins</h2>
+                <div class="bins">
+                    <div class="bin" data-type="plastic">
+                        <h3>Plastic</h3>
+                        <div class="bin-count">0</div>
+                        <div class="potential-profit"></div>
+                    </div>
+                    <div class="bin" data-type="paper">
+                        <h3>Paper</h3>
+                        <div class="bin-count">0</div>
+                        <div class="potential-profit"></div>
+                    </div>
+                    <div class="bin" data-type="metal">
+                        <h3>Metal</h3>
+                        <div class="bin-count">0</div>
+                        <div class="potential-profit"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upgrades Panel -->
+        <div class="upgrades-panel">
+            <h2>Upgrades</h2>
+            <div class="upgrades-container">
+                <div class="upgrade" data-id="autoCollector">
+                    <h3>Auto Collector</h3>
+                    <p>Automatically collects trash every few seconds</p>
+                    <p class="upgrade-cost">Cost: $<span class="cost">50</span></p>
+                    <p class="upgrade-level">Level: <span class="level">0</span></p>
+                    <button class="buy-upgrade">Purchase</button>
+                </div>
+                <div class="upgrade" data-id="betterPrices">
+                    <h3>Better Prices</h3>
+                    <p>Increase selling prices by 25% per level</p>
+                    <p class="upgrade-cost">Cost: $<span class="cost">100</span></p>
+                    <p class="upgrade-level">Level: <span class="level">0</span></p>
+                    <button class="buy-upgrade">Purchase</button>
+                </div>
+                <div class="upgrade" data-id="largerStorage">
+                    <h3>Larger Storage</h3>
+                    <p>Collect more trash per click</p>
+                    <p class="upgrade-cost">Cost: $<span class="cost">75</span></p>
+                    <p class="upgrade-level">Level: <span class="level">0</span></p>
+                    <button class="buy-upgrade">Purchase</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html> 
