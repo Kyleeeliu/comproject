@@ -10,7 +10,10 @@
     <div class="game-container">
         <!-- Header Section -->
         <header>
-            <h1>EcoEmpire</h1>
+            <div class="title-container">
+                <h1>EcoEmpire</h1>
+                <span class="credits">by Kyle Liu and Eric Lei</span>
+            </div>
             <div class="resources">
                 <div class="money">💰 $<span id="money">0</span></div>
                 <div class="eco-points">🌱 <span id="ecoPoints">0</span></div>
@@ -68,6 +71,34 @@
                             <div class="progress" id="sdg12-progress" style="width: 0%"></div>
                         </div>
                         <span class="progress-text">0%</span>
+                        <div class="quest-list">
+                            <div class="quest" data-quest="efficientSorting">
+                                <div class="quest-header">
+                                    <p>Efficient Waste Management</p>
+                                    <span class="expand-arrow">▼</span>
+                                </div>
+                                <div class="quest-details">
+                                    <small>Upgrade Auto Collector to level 3</small>
+                                    <div class="quest-progress-bar">
+                                        <div class="quest-progress" style="width: 0%"></div>
+                                    </div>
+                                    <span class="quest-progress-text">0/3</span>
+                                </div>
+                            </div>
+                            <div class="quest" data-quest="wasteReduction">
+                                <div class="quest-header">
+                                    <p>Waste Reduction Program</p>
+                                    <span class="expand-arrow">▼</span>
+                                </div>
+                                <div class="quest-details">
+                                    <small>Process 200 total items</small>
+                                    <div class="quest-progress-bar">
+                                        <div class="quest-progress" style="width: 0%"></div>
+                                    </div>
+                                    <span class="quest-progress-text">0/200</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="sdg-badge" data-sdg="13">
@@ -78,6 +109,38 @@
                             <div class="progress" id="sdg13-progress" style="width: 0%"></div>
                         </div>
                         <span class="progress-text">0%</span>
+                        <div class="quest-list">
+                            <div class="quest" data-quest="greenTech">
+                                <div class="quest-header">
+                                    <p>Green Technology Pioneer</p>
+                                    <span class="expand-arrow">▼</span>
+                                </div>
+                                <div class="quest-details">
+                                    <small>Purchase all upgrades at least once</small>
+                                    <div class="upgrade-progress">
+                                        <span>Auto Collector: <span class="progress-check">❌</span></span>
+                                        <span>Market Influence: <span class="progress-check">❌</span></span>
+                                        <span>Storage Expansion: <span class="progress-check">❌</span></span>
+                                        <span>Hazard Protection: <span class="progress-check">❌</span></span>
+                                        <span>Eco Booster: <span class="progress-check">❌</span></span>
+                                        <span>Smart Sorting: <span class="progress-check">❌</span></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="quest" data-quest="carbonReduction">
+                                <div class="quest-header">
+                                    <p>Carbon Footprint Reduction</p>
+                                    <span class="expand-arrow">▼</span>
+                                </div>
+                                <div class="quest-details">
+                                    <small>Earn 1000 eco points</small>
+                                    <div class="quest-progress-bar">
+                                        <div class="quest-progress" style="width: 0%"></div>
+                                    </div>
+                                    <span class="quest-progress-text">0/1000</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -161,26 +224,160 @@
         <div class="upgrades-panel">
             <h2>Upgrades</h2>
             <div class="upgrades-container">
-                <div class="upgrade" data-id="autoCollector">
-                    <h3>Auto Collector</h3>
-                    <p>Automatically collects trash every few seconds</p>
-                    <p class="upgrade-cost">Cost: $<span class="cost">50</span></p>
-                    <p class="upgrade-level">Level: <span class="level">0</span></p>
-                    <button class="buy-upgrade">Purchase</button>
+                <!-- Collection Upgrades -->
+                <div class="upgrade-category">
+                    <h3 class="category-title">🧹 Collection Upgrades</h3>
+                    <div class="upgrade" data-id="autoCollector">
+                        <h3>🤖 Auto Collector</h3>
+                        <p>Automatically collects trash every few seconds</p>
+                        <p class="upgrade-cost">Cost: $<span class="cost">50</span></p>
+                        <p class="upgrade-level">Level: <span class="level">0</span></p>
+                        <button class="buy-upgrade">Purchase</button>
+                    </div>
+                    <div class="upgrade" data-id="largerStorage">
+                        <h3>📦 Storage Expansion</h3>
+                        <p>Collect more trash per click</p>
+                        <p class="upgrade-cost">Cost: $<span class="cost">75</span></p>
+                        <p class="upgrade-level">Level: <span class="level">0</span></p>
+                        <button class="buy-upgrade">Purchase</button>
+                    </div>
+                    <div class="upgrade" data-id="quickCollection">
+                        <h3>⚡ Quick Collection</h3>
+                        <p>Reduce collection cooldown by 15% per level</p>
+                        <p class="upgrade-cost">Cost: $<span class="cost">100</span></p>
+                        <p class="upgrade-level">Level: <span class="level">0</span></p>
+                        <button class="buy-upgrade">Purchase</button>
+                    </div>
                 </div>
-                <div class="upgrade" data-id="betterPrices">
-                    <h3>Better Prices</h3>
-                    <p>Increase selling prices by 25% per level</p>
-                    <p class="upgrade-cost">Cost: $<span class="cost">100</span></p>
-                    <p class="upgrade-level">Level: <span class="level">0</span></p>
-                    <button class="buy-upgrade">Purchase</button>
+
+                <!-- Economic Upgrades -->
+                <div class="upgrade-category">
+                    <h3 class="category-title">💰 Economic Upgrades</h3>
+                    <div class="upgrade" data-id="betterPrices">
+                        <h3>📈 Market Influence</h3>
+                        <p>Increase selling prices by 25% per level</p>
+                        <p class="upgrade-cost">Cost: $<span class="cost">100</span></p>
+                        <p class="upgrade-level">Level: <span class="level">0</span></p>
+                        <button class="buy-upgrade">Purchase</button>
+                    </div>
+                    <div class="upgrade" data-id="bulkSelling">
+                        <h3>🏭 Bulk Processing</h3>
+                        <p>+10% bonus when selling large quantities</p>
+                        <p class="upgrade-cost">Cost: $<span class="cost">150</span></p>
+                        <p class="upgrade-level">Level: <span class="level">0</span></p>
+                        <button class="buy-upgrade">Purchase</button>
+                    </div>
+                    <div class="upgrade" data-id="passiveIncome">
+                        <h3>💸 Passive Income</h3>
+                        <p>Earn money periodically based on eco points</p>
+                        <p class="upgrade-cost">Cost: $<span class="cost">200</span></p>
+                        <p class="upgrade-level">Level: <span class="level">0</span></p>
+                        <button class="buy-upgrade">Purchase</button>
+                    </div>
                 </div>
-                <div class="upgrade" data-id="largerStorage">
-                    <h3>Larger Storage</h3>
-                    <p>Collect more trash per click</p>
-                    <p class="upgrade-cost">Cost: $<span class="cost">75</span></p>
-                    <p class="upgrade-level">Level: <span class="level">0</span></p>
-                    <button class="buy-upgrade">Purchase</button>
+
+                <!-- Environmental Upgrades -->
+                <div class="upgrade-category">
+                    <h3 class="category-title">🌱 Environmental Upgrades</h3>
+                    <div class="upgrade" data-id="hazardProtection">
+                        <h3>🛡️ Hazard Protection</h3>
+                        <p>Reduce contamination fines by 20% per level</p>
+                        <p class="upgrade-cost">Cost: $<span class="cost">150</span></p>
+                        <p class="upgrade-level">Level: <span class="level">0</span></p>
+                        <button class="buy-upgrade">Purchase</button>
+                    </div>
+                    <div class="upgrade" data-id="ecoBooster">
+                        <h3>🌿 Eco Booster</h3>
+                        <p>Earn 25% more eco points per level</p>
+                        <p class="upgrade-cost">Cost: $<span class="cost">125</span></p>
+                        <p class="upgrade-level">Level: <span class="level">0</span></p>
+                        <button class="buy-upgrade">Purchase</button>
+                    </div>
+                    <div class="upgrade" data-id="greenEnergy">
+                        <h3>⚡ Green Energy</h3>
+                        <p>Auto collector uses 30% less energy (faster)</p>
+                        <p class="upgrade-cost">Cost: $<span class="cost">175</span></p>
+                        <p class="upgrade-level">Level: <span class="level">0</span></p>
+                        <button class="buy-upgrade">Purchase</button>
+                    </div>
+                </div>
+
+                <!-- Technology Upgrades -->
+                <div class="upgrade-category">
+                    <h3 class="category-title">🔬 Technology Upgrades</h3>
+                    <div class="upgrade" data-id="smartSorting">
+                        <h3>🔍 Smart Sorting</h3>
+                        <p>Increase chance of valuable materials</p>
+                        <p class="upgrade-cost">Cost: $<span class="cost">200</span></p>
+                        <p class="upgrade-level">Level: <span class="level">0</span></p>
+                        <button class="buy-upgrade">Purchase</button>
+                    </div>
+                    <div class="upgrade" data-id="hazardScanner">
+                        <h3>📡 Hazard Scanner</h3>
+                        <p>Highlight hazardous materials automatically</p>
+                        <p class="upgrade-cost">Cost: $<span class="cost">250</span></p>
+                        <p class="upgrade-level">Level: <span class="level">0</span></p>
+                        <button class="buy-upgrade">Purchase</button>
+                    </div>
+                    <div class="upgrade" data-id="recyclingEfficiency">
+                        <h3>♻️ Recycling Efficiency</h3>
+                        <p>Chance to get bonus materials when collecting</p>
+                        <p class="upgrade-cost">Cost: $<span class="cost">300</span></p>
+                        <p class="upgrade-level">Level: <span class="level">0</span></p>
+                        <button class="buy-upgrade">Purchase</button>
+                    </div>
+                </div>
+
+                <!-- Automation Upgrades -->
+                <div class="upgrade-category">
+                    <h3 class="category-title">⚙️ Automation Upgrades</h3>
+                    <div class="upgrade" data-id="multiCollector">
+                        <h3>🔄 Multi Collector</h3>
+                        <p>Auto collector processes multiple spots at once</p>
+                        <p class="upgrade-cost">Cost: $<span class="cost">400</span></p>
+                        <p class="upgrade-level">Level: <span class="level">0</span></p>
+                        <button class="buy-upgrade">Purchase</button>
+                    </div>
+                    <div class="upgrade" data-id="autoSeller">
+                        <h3>💫 Auto Seller</h3>
+                        <p>Automatically sells when bins are nearly full</p>
+                        <p class="upgrade-cost">Cost: $<span class="cost">350</span></p>
+                        <p class="upgrade-level">Level: <span class="level">0</span></p>
+                        <button class="buy-upgrade">Purchase</button>
+                    </div>
+                    <div class="upgrade" data-id="smartStorage">
+                        <h3>🗄️ Smart Storage</h3>
+                        <p>Increases maximum storage capacity of bins</p>
+                        <p class="upgrade-cost">Cost: $<span class="cost">275</span></p>
+                        <p class="upgrade-level">Level: <span class="level">0</span></p>
+                        <button class="buy-upgrade">Purchase</button>
+                    </div>
+                </div>
+
+                <!-- Special Upgrades -->
+                <div class="upgrade-category">
+                    <h3 class="category-title">✨ Special Upgrades</h3>
+                    <div class="upgrade" data-id="goldenTouch">
+                        <h3>👑 Golden Touch</h3>
+                        <p>Small chance to turn any item into valuable metal</p>
+                        <p class="upgrade-cost">Cost: $<span class="cost">500</span></p>
+                        <p class="upgrade-level">Level: <span class="level">0</span></p>
+                        <button class="buy-upgrade">Purchase</button>
+                    </div>
+                    <div class="upgrade" data-id="ecoMagnet">
+                        <h3>🧲 Eco Magnet</h3>
+                        <p>Attracts nearby recyclables (faster spawning)</p>
+                        <p class="upgrade-cost">Cost: $<span class="cost">450</span></p>
+                        <p class="upgrade-level">Level: <span class="level">0</span></p>
+                        <button class="buy-upgrade">Purchase</button>
+                    </div>
+                    <div class="upgrade" data-id="cityInspiration">
+                        <h3>🌆 City Inspiration</h3>
+                        <p>Nearby cities contribute bonus eco points</p>
+                        <p class="upgrade-cost">Cost: $<span class="cost">600</span></p>
+                        <p class="upgrade-level">Level: <span class="level">0</span></p>
+                        <button class="buy-upgrade">Purchase</button>
+                    </div>
                 </div>
             </div>
         </div>

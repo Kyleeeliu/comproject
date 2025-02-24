@@ -19,23 +19,92 @@ class TrashTycoon {
             autoCollector: {
                 level: 0,
                 baseCost: 50,
-                effect: () => {
-                    this.startAutoCollection();
-                }
+                effect: () => this.startAutoCollection()
             },
             betterPrices: {
                 level: 0,
                 baseCost: 100,
-                effect: () => {
-                    this.updatePrices();
-                }
+                effect: () => this.updatePrices()
             },
             largerStorage: {
                 level: 0,
                 baseCost: 75,
-                effect: () => {
-                    this.updateCollectionAmount();
-                }
+                effect: () => this.updateCollectionAmount()
+            },
+            quickCollection: {
+                level: 0,
+                baseCost: 100,
+                effect: () => this.updateCollectionSpeed()
+            },
+            bulkSelling: {
+                level: 0,
+                baseCost: 150,
+                effect: () => this.updateBulkBonus()
+            },
+            passiveIncome: {
+                level: 0,
+                baseCost: 200,
+                effect: () => this.startPassiveIncome()
+            },
+            hazardProtection: {
+                level: 0,
+                baseCost: 150,
+                effect: () => this.updateHazardProtection()
+            },
+            ecoBooster: {
+                level: 0,
+                baseCost: 125,
+                effect: () => this.updateEcoMultiplier()
+            },
+            greenEnergy: {
+                level: 0,
+                baseCost: 175,
+                effect: () => this.updateEnergyEfficiency()
+            },
+            smartSorting: {
+                level: 0,
+                baseCost: 200,
+                effect: () => this.updateSpawnRates()
+            },
+            hazardScanner: {
+                level: 0,
+                baseCost: 250,
+                effect: () => this.updateHazardScanning()
+            },
+            recyclingEfficiency: {
+                level: 0,
+                baseCost: 300,
+                effect: () => this.updateRecyclingBonus()
+            },
+            multiCollector: {
+                level: 0,
+                baseCost: 400,
+                effect: () => this.updateMultiCollector()
+            },
+            autoSeller: {
+                level: 0,
+                baseCost: 350,
+                effect: () => this.updateAutoSeller()
+            },
+            smartStorage: {
+                level: 0,
+                baseCost: 275,
+                effect: () => this.updateStorageCapacity()
+            },
+            goldenTouch: {
+                level: 0,
+                baseCost: 500,
+                effect: () => this.updateGoldenTouch()
+            },
+            ecoMagnet: {
+                level: 0,
+                baseCost: 450,
+                effect: () => this.updateEcoMagnet()
+            },
+            cityInspiration: {
+                level: 0,
+                baseCost: 600,
+                effect: () => this.updateCityInspiration()
             }
         };
 
@@ -132,6 +201,20 @@ class TrashTycoon {
         // Initialize separate collection zones
         this.mainCollectionActive = true;  // Flag to track which zone is being updated
         this.init();
+
+        // Add new properties
+        this.hazardProtectionLevel = 1;
+        this.ecoMultiplier = 1;
+        this.valuableSpawnRate = 0.3;
+        this.multiCollectorCount = 1;
+        this.autoSellThreshold = 0;
+        this.storageMultiplier = 1;
+        this.goldenTouchChance = 0;
+        this.spawnRate = 0.3;
+        this.cityBonus = 1;
+
+        // Start periodic upgrade display updates
+        setInterval(() => this.updateUpgradesDisplay(), 100);
     }
 
     init() {
@@ -187,10 +270,11 @@ class TrashTycoon {
         });
         
         if (contaminated) {
-            // Apply monetary fine and eco points penalty
-            const fine = 10;
+            // Apply reduced fine based on hazard protection
+            const baseFine = 10;
+            const fine = Math.floor(baseFine * this.hazardProtectionLevel);
             this.money = Math.max(0, this.money - fine);
-            this.ecoPoints = Math.max(0, this.ecoPoints - 5);
+            this.ecoPoints = Math.max(0, this.ecoPoints - Math.floor(5 * this.hazardProtectionLevel));
             
             const notification = document.createElement('div');
             notification.className = 'contamination-alert';
@@ -200,7 +284,7 @@ class TrashTycoon {
                 <p>Municipal Code Violation: Section 7.4</p>
                 <div class="penalty-details">
                     <p class="penalty">Fine: -$${fine}</p>
-                    <p class="penalty">Eco Impact: -5 🌱</p>
+                    <p class="penalty">Eco Impact: -${Math.floor(5 * this.hazardProtectionLevel)} 🌱</p>
                 </div>
                 <small>Please remove hazardous materials before collection.</small>
             `;
@@ -218,7 +302,8 @@ class TrashTycoon {
             });
 
             if (totalCollected > 0) {
-                this.ecoPoints += totalCollected;
+                // Apply eco multiplier and city bonus to points earned
+                this.ecoPoints += Math.floor(totalCollected * this.ecoMultiplier * this.cityBonus);
                 document.getElementById('lastCollected').textContent = `${totalCollected} items`;
                 document.getElementById('collectionSpeed').textContent = 
                     `${this.baseCollectionAmount}x`;
@@ -248,7 +333,14 @@ class TrashTycoon {
     sellTrash(type) {
         if (this.trashItems[type] > 0) {
             const amount = this.trashItems[type];
-            const profit = amount * this.prices[type];
+            let profit = amount * this.prices[type];
+            
+            // Apply bulk selling bonus if applicable
+            if (amount >= 50 && this.upgrades.bulkSelling.level > 0) {
+                const bulkBonus = 1 + (this.upgrades.bulkSelling.level * 0.1);
+                profit = Math.floor(profit * bulkBonus);
+            }
+            
             this.money += profit;
             this.trashItems[type] = 0;
             this.updateDisplay();
@@ -341,7 +433,7 @@ class TrashTycoon {
             
             // Update displays
             this.updateDisplay();
-            this.updateUpgradesDisplay();
+            this.updateUpgradesDisplay();  // Update all upgrade buttons
             
             // Show purchase animation
             this.showPurchaseAnimation(cost, upgradeId);
@@ -355,9 +447,12 @@ class TrashTycoon {
     }
 
     updateUpgradesDisplay() {
-        Object.keys(this.upgrades).forEach(upgradeId => {
-            const upgradeElement = document.querySelector(`.upgrade[data-id="${upgradeId}"]`);
-            if (!upgradeElement) return;
+        // Get all upgrade elements
+        const allUpgrades = document.querySelectorAll('.upgrade');
+        
+        allUpgrades.forEach(upgradeElement => {
+            const upgradeId = upgradeElement.dataset.id;
+            if (!upgradeId || !this.upgrades[upgradeId]) return;
 
             const cost = this.calculateUpgradeCost(upgradeId);
             const level = this.upgrades[upgradeId].level;
@@ -369,8 +464,19 @@ class TrashTycoon {
             if (costElement) costElement.textContent = cost;
             if (levelElement) levelElement.textContent = level;
             if (buyButton) {
-                buyButton.disabled = this.money < cost;
-                buyButton.textContent = this.money < cost ? 'Not enough money' : 'Purchase';
+                const canAfford = this.money >= cost;
+                buyButton.disabled = !canAfford;
+                
+                // Update button text and style immediately
+                if (!canAfford) {
+                    buyButton.textContent = `Need $${cost}`;
+                    buyButton.classList.add('cant-afford');
+                    buyButton.title = `Need $${cost - this.money} more`;
+                } else {
+                    buyButton.textContent = 'Purchase';
+                    buyButton.classList.remove('cant-afford');
+                    buyButton.title = '';
+                }
             }
         });
     }
@@ -605,16 +711,27 @@ class TrashTycoon {
     updateCollectionZone(selector) {
         const spots = document.querySelectorAll(selector);
         spots.forEach(spot => {
-            // Only update empty spots
             if (spot.dataset.type === 'empty') {
-                if (Math.random() < 0.3) { // 30% chance for each empty spot
+                if (Math.random() < this.spawnRate) {
                     const types = Object.keys(this.trashTypes);
-                    const randomType = types[Math.floor(Math.random() * types.length)];
-                    spot.dataset.type = randomType;
-                    spot.textContent = this.trashTypes[randomType].emoji;
+                    // Apply golden touch chance
+                    if (Math.random() < this.goldenTouchChance) {
+                        spot.dataset.type = 'metal';
+                        spot.textContent = this.trashTypes.metal.emoji;
+                    } else {
+                        // Random selection from other types
+                        const otherTypes = types.filter(t => t !== 'metal');
+                        spot.dataset.type = otherTypes[Math.floor(Math.random() * otherTypes.length)];
+                        spot.textContent = this.trashTypes[spot.dataset.type].emoji;
+                    }
+                    
                     spot.classList.add('active');
                     
-                    // Add click handler for manual removal only to main collection zone
+                    // Apply hazard scanner effect
+                    if (this.hazardScanningLevel > 0 && !this.trashTypes[spot.dataset.type].recyclable) {
+                        spot.classList.add('hazardous');
+                    }
+                    
                     if (selector.includes('collection-grid')) {
                         spot.onclick = (e) => {
                             e.stopPropagation();
@@ -669,6 +786,98 @@ class TrashTycoon {
         `;
         document.body.appendChild(notification);
         setTimeout(() => notification.remove(), 1000);
+    }
+
+    // Add new methods for upgrade effects
+    updateHazardProtection() {
+        this.hazardProtectionLevel = Math.max(0.2, 1 - (this.upgrades.hazardProtection.level * 0.2));
+    }
+
+    updateEcoMultiplier() {
+        this.ecoMultiplier = 1 + (this.upgrades.ecoBooster.level * 0.25);
+    }
+
+    updateSpawnRates() {
+        this.valuableSpawnRate = 0.3 + (this.upgrades.smartSorting.level * 0.1);
+    }
+
+    updateMultiCollector() {
+        this.multiCollectorCount = 1 + this.upgrades.multiCollector.level;
+        // Auto collector will now process multiple spots based on level
+    }
+
+    updateAutoSeller() {
+        this.autoSellThreshold = this.upgrades.autoSeller.level * 0.1; // 10% per level
+        if (this.autoSellThreshold > 0) {
+            this.startAutoSeller();
+        }
+    }
+
+    startAutoSeller() {
+        setInterval(() => {
+            Object.keys(this.trashItems).forEach(type => {
+                if (this.trashItems[type] >= 100 * this.autoSellThreshold) {
+                    this.sellTrash(type);
+                }
+            });
+        }, 5000);
+    }
+
+    updateStorageCapacity() {
+        this.storageMultiplier = 1 + (this.upgrades.smartStorage.level * 0.5); // 50% increase per level
+    }
+
+    updateGoldenTouch() {
+        this.goldenTouchChance = this.upgrades.goldenTouch.level * 0.05; // 5% chance per level
+    }
+
+    updateEcoMagnet() {
+        this.spawnRate = 0.3 + (this.upgrades.ecoMagnet.level * 0.1); // 10% faster spawning per level
+    }
+
+    updateCityInspiration() {
+        this.cityBonus = 1 + (this.upgrades.cityInspiration.level * 0.2); // 20% bonus per level
+    }
+
+    updateCollectionSpeed() {
+        // Reduce collection cooldown
+        this.collectionCooldown = Math.max(1000, 5000 - (this.upgrades.quickCollection.level * 750));
+    }
+
+    updateBulkBonus() {
+        // Update bulk selling bonus
+        this.bulkBonus = 1 + (this.upgrades.bulkSelling.level * 0.1);
+    }
+
+    startPassiveIncome() {
+        // Start passive income based on eco points
+        if (!this.passiveIncomeInterval) {
+            this.passiveIncomeInterval = setInterval(() => {
+                const income = Math.floor(this.ecoPoints * 0.01 * this.upgrades.passiveIncome.level);
+                if (income > 0) {
+                    this.money += income;
+                    this.updateDisplay();
+                }
+            }, 10000);
+        }
+    }
+
+    updateEnergyEfficiency() {
+        // Make auto collector faster
+        if (this.autoCollectorInterval) {
+            this.startAutoCollection(); // Restart with new speed
+        }
+    }
+
+    updateHazardScanning() {
+        // Highlight hazardous materials
+        this.hazardScanningLevel = this.upgrades.hazardScanner.level;
+        // Add visual effect in updateCollectionZone
+    }
+
+    updateRecyclingBonus() {
+        // Chance for bonus materials
+        this.recyclingBonus = this.upgrades.recyclingEfficiency.level * 0.1;
     }
 }
 
