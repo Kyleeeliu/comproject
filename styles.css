@@ -548,33 +548,15 @@ header h1 {
     background-color: rgba(255, 255, 255, 0.7);
     border-radius: 8px;
     margin-bottom: 8px;
-    cursor: pointer;
     transition: all 0.3s ease;
 }
 
-.quest:hover {
-    background-color: rgba(255, 255, 255, 0.9);
-}
-
 .quest-header {
+    cursor: pointer;
+    user-select: none;
     display: flex;
     justify-content: space-between;
     align-items: center;
-}
-
-.quest-header p {
-    color: #2e7d32;
-    margin: 0;
-    font-weight: bold;
-}
-
-.expand-arrow {
-    color: #2e7d32;
-    transition: transform 0.3s ease;
-}
-
-.quest.expanded .expand-arrow {
-    transform: rotate(180deg);
 }
 
 .quest-details {
@@ -586,6 +568,16 @@ header h1 {
 
 .quest.expanded .quest-details {
     display: block;
+    animation: slideDown 0.3s ease-out;
+}
+
+.expand-arrow {
+    color: #2e7d32;
+    transition: transform 0.3s ease;
+}
+
+.quest.expanded .expand-arrow {
+    transform: rotate(180deg);
 }
 
 .quest-progress-bar {
@@ -797,19 +789,6 @@ header h1 {
     content: '✅';
 }
 
-.quest-details {
-    display: none;
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px solid rgba(129, 199, 132, 0.3);
-    font-size: 0.9em;
-}
-
-.quest.expanded .quest-details {
-    display: block;
-    animation: slideDown 0.3s ease-out;
-}
-
 @keyframes slideDown {
     from {
         opacity: 0;
@@ -844,4 +823,112 @@ header h1 {
     0% { box-shadow: 0 0 0 0 rgba(229, 57, 53, 0.4); }
     70% { box-shadow: 0 0 0 10px rgba(229, 57, 53, 0); }
     100% { box-shadow: 0 0 0 0 rgba(229, 57, 53, 0); }
+}
+
+.dev-console {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.9);
+    color: #00ff00;
+    padding: 20px;
+    border-radius: 10px;
+    z-index: 9999;
+    min-width: 300px;
+    font-family: monospace;
+    border: 2px solid #00ff00;
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
+}
+
+.dev-console-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #00ff00;
+    padding-bottom: 10px;
+}
+
+.dev-console-header h3 {
+    margin: 0;
+    color: #00ff00;
+}
+
+.dev-console-close {
+    background: none;
+    border: none;
+    color: #00ff00;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0 5px;
+}
+
+.dev-console-close:hover {
+    color: #ff0000;
+}
+
+.dev-console-content {
+    display: grid;
+    gap: 10px;
+}
+
+.dev-console-content button {
+    background-color: #003300;
+    color: #00ff00;
+    border: 1px solid #00ff00;
+    padding: 8px;
+    cursor: pointer;
+    font-family: monospace;
+    transition: all 0.3s ease;
+}
+
+.dev-console-content button:hover {
+    background-color: #004400;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+}
+
+/* Add new animation styles */
+.quest.completing {
+    animation: questComplete 1s ease-out;
+    background-color: #c8e6c9;
+    border: 2px solid #43a047;
+}
+
+@keyframes questComplete {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(67, 160, 71, 0.4);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 0 20px 10px rgba(67, 160, 71, 0.2);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(67, 160, 71, 0);
+    }
+}
+
+.quest-complete {
+    animation: slideInAndFade 1s ease-out;
+}
+
+@keyframes slideInAndFade {
+    0% {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    10% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    90% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(20px);
+        opacity: 0;
+    }
 } 

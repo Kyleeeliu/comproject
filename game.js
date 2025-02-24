@@ -115,29 +115,62 @@ class TrashTycoon {
         this.sdgProgress = {
             sdg11: 0, // Sustainable Cities
             sdg12: 0, // Responsible Consumption
-            sdg13: 0  // Climate Action
+            sdg13: 0,  // Climate Action
+            sdg14: 0,  // Life Below Water
+            sdg15: 0,  // Life on Land
+            sdg7: 0   // Clean Energy
         };
 
-        // Add SDG quests and progress tracking
-        this.sdgQuests = {
+        // Add quest pool
+        this.questPool = {
             sdg11: [
                 {
                     id: 'cleanCity',
                     title: 'Clean City Initiative',
                     description: 'Clean up 100 pieces of trash',
                     target: 100,
-                    progress: 0,
-                    reward: 500,
-                    completed: false
+                    checkProgress: () => this.ecoPoints,
+                    reward: 500
                 },
                 {
                     id: 'recyclingCenter',
                     title: 'Build Recycling Centers',
-                    description: 'Sell 50 pieces of each material type',
+                    description: 'Sell 50 pieces of each material',
                     target: 50,
-                    progress: { plastic: 0, paper: 0, metal: 0 },
-                    reward: 1000,
-                    completed: false
+                    checkProgress: () => Math.min(...Object.values(this.totalSales)),
+                    reward: 1000
+                },
+                {
+                    id: 'urbanDevelopment',
+                    title: 'Urban Development',
+                    description: 'Earn $1000 from sales',
+                    target: 1000,
+                    checkProgress: () => this.money,
+                    reward: 800
+                },
+                {
+                    id: 'cityPlanner',
+                    title: 'City Planner',
+                    description: 'Upgrade storage capacity 3 times',
+                    target: 3,
+                    checkProgress: () => this.upgrades.smartStorage.level,
+                    reward: 1200
+                },
+                {
+                    id: 'wasteManager',
+                    title: 'Waste Management Expert',
+                    description: 'Remove 20 hazardous items',
+                    target: 20,
+                    checkProgress: () => this.hazardousItemsRemoved || 0,
+                    reward: 1500
+                },
+                {
+                    id: 'urbanEfficiency',
+                    title: 'Urban Efficiency',
+                    description: 'Process 50 items in under a minute',
+                    target: 50,
+                    checkProgress: () => this.rapidProcessingCount || 0,
+                    reward: 2000
                 }
             ],
             sdg12: [
@@ -146,40 +179,212 @@ class TrashTycoon {
                     title: 'Efficient Waste Management',
                     description: 'Upgrade Auto Collector to level 3',
                     target: 3,
-                    progress: 0,
-                    reward: 750,
-                    completed: false
+                    checkProgress: () => this.upgrades.autoCollector.level,
+                    reward: 750
                 },
                 {
                     id: 'wasteReduction',
                     title: 'Waste Reduction Program',
                     description: 'Process 200 total items',
                     target: 200,
-                    progress: 0,
-                    reward: 1500,
-                    completed: false
+                    checkProgress: () => Object.values(this.totalSales).reduce((a, b) => a + b, 0),
+                    reward: 1500
+                },
+                {
+                    id: 'resourceEfficiency',
+                    title: 'Resource Efficiency',
+                    description: 'Collect 100 metal items',
+                    target: 100,
+                    checkProgress: () => this.totalSales.metal,
+                    reward: 1200
+                },
+                {
+                    id: 'materialSpecialist',
+                    title: 'Material Specialist',
+                    description: 'Collect 100 pieces of paper',
+                    target: 100,
+                    checkProgress: () => this.totalSales.paper,
+                    reward: 1300
+                },
+                {
+                    id: 'bulkProcessor',
+                    title: 'Bulk Processing Master',
+                    description: 'Sell 100 items at once',
+                    target: 100,
+                    checkProgress: () => Math.max(...Object.values(this.trashItems)),
+                    reward: 1800
+                },
+                {
+                    id: 'efficientOperator',
+                    title: 'Efficient Operator',
+                    description: 'Reach 3x collection speed',
+                    target: 3,
+                    checkProgress: () => this.upgrades.quickCollection.level,
+                    reward: 1600
                 }
             ],
             sdg13: [
                 {
                     id: 'greenTech',
                     title: 'Green Technology Pioneer',
-                    description: 'Purchase all upgrades at least once',
-                    progress: { autoCollector: false, betterPrices: false, largerStorage: false },
-                    reward: 2000,
-                    completed: false
+                    description: 'Purchase 3 different upgrades',
+                    target: 3,
+                    checkProgress: () => Object.values(this.upgrades).filter(u => u.level > 0).length,
+                    reward: 2000
                 },
                 {
                     id: 'carbonReduction',
                     title: 'Carbon Footprint Reduction',
                     description: 'Earn 1000 eco points',
                     target: 1000,
-                    progress: 0,
-                    reward: 3000,
-                    completed: false
+                    checkProgress: () => this.ecoPoints,
+                    reward: 3000
+                },
+                {
+                    id: 'sustainableOperations',
+                    title: 'Sustainable Operations',
+                    description: 'Have auto collector running for 5 minutes',
+                    target: 300,
+                    checkProgress: () => this.autoCollectorTime || 0,
+                    reward: 1500
+                },
+                {
+                    id: 'greenInnovator',
+                    title: 'Green Innovator',
+                    description: 'Purchase 5 environmental upgrades',
+                    target: 5,
+                    checkProgress: () => {
+                        const envUpgrades = ['ecoBooster', 'greenEnergy', 'hazardProtection'];
+                        return envUpgrades.reduce((sum, upgrade) => sum + this.upgrades[upgrade].level, 0);
+                    },
+                    reward: 2500
+                },
+                {
+                    id: 'sustainabilityPioneer',
+                    title: 'Sustainability Pioneer',
+                    description: 'Maintain 100% eco-friendly processing for 2 minutes',
+                    target: 120,
+                    checkProgress: () => this.cleanProcessingTime || 0,
+                    reward: 2200
+                },
+                {
+                    id: 'climateChampion',
+                    title: 'Climate Champion',
+                    description: 'Earn 2000 eco points without any contamination',
+                    target: 2000,
+                    checkProgress: () => this.cleanEcoPoints || 0,
+                    reward: 3000
+                }
+            ],
+            sdg14: [
+                {
+                    id: 'oceanCleanup',
+                    title: 'Ocean Cleanup',
+                    description: 'Remove 30 plastic items',
+                    target: 30,
+                    checkProgress: () => this.totalSales.plastic,
+                    reward: 1000
+                },
+                {
+                    id: 'marineProtection',
+                    title: 'Marine Protection',
+                    description: 'Process waste without contamination 10 times',
+                    target: 10,
+                    checkProgress: () => this.cleanProcessingStreak || 0,
+                    reward: 1500
+                },
+                {
+                    id: 'coastalConservation',
+                    title: 'Coastal Conservation',
+                    description: 'Earn $2000 from recycling plastic',
+                    target: 2000,
+                    checkProgress: () => this.plasticEarnings || 0,
+                    reward: 2000
+                }
+            ],
+            sdg15: [
+                {
+                    id: 'forestPreservation',
+                    title: 'Forest Preservation',
+                    description: 'Recycle 50 paper items',
+                    target: 50,
+                    checkProgress: () => this.totalSales.paper,
+                    reward: 1200
+                },
+                {
+                    id: 'biodiversityProtection',
+                    title: 'Biodiversity Protection',
+                    description: 'Remove 15 toxic waste items',
+                    target: 15,
+                    checkProgress: () => this.hazardousItemsRemoved,
+                    reward: 1800
+                },
+                {
+                    id: 'ecosystemBalance',
+                    title: 'Ecosystem Balance',
+                    description: 'Maintain clean processing for 3 minutes',
+                    target: 180,
+                    checkProgress: () => this.cleanProcessingTime,
+                    reward: 2200
+                }
+            ],
+            sdg7: [
+                {
+                    id: 'renewableEnergy',
+                    title: 'Renewable Energy',
+                    description: 'Purchase 3 green energy upgrades',
+                    target: 3,
+                    checkProgress: () => this.upgrades.greenEnergy.level,
+                    reward: 1500
+                },
+                {
+                    id: 'energyEfficiency',
+                    title: 'Energy Efficiency',
+                    description: 'Process 100 items with auto collector',
+                    target: 100,
+                    checkProgress: () => this.autoProcessedItems || 0,
+                    reward: 1700
+                },
+                {
+                    id: 'cleanPower',
+                    title: 'Clean Power Pioneer',
+                    description: 'Reach 5x collection speed',
+                    target: 5,
+                    checkProgress: () => this.upgrades.quickCollection.level,
+                    reward: 2500
+                },
+                {
+                    id: 'sustainableGrid',
+                    title: 'Sustainable Grid',
+                    description: 'Have all automation upgrades active',
+                    target: 3,
+                    checkProgress: () => {
+                        const autoUpgrades = ['autoCollector', 'autoSeller', 'multiCollector'];
+                        return autoUpgrades.filter(u => this.upgrades[u].level > 0).length;
+                    },
+                    reward: 2000
+                },
+                {
+                    id: 'energyInnovator',
+                    title: 'Energy Innovator',
+                    description: 'Process 500 items without manual collection',
+                    target: 500,
+                    checkProgress: () => this.autoProcessedTotal || 0,
+                    reward: 3000
+                },
+                {
+                    id: 'powerOptimization',
+                    title: 'Power Optimization',
+                    description: 'Maintain maximum efficiency for 5 minutes',
+                    target: 300,
+                    checkProgress: () => this.optimalProcessingTime || 0,
+                    reward: 2800
                 }
             ]
         };
+
+        // Initialize active quests
+        this.initializeActiveQuests();
 
         // Add non-recyclable types
         this.trashTypes = {
@@ -215,6 +420,28 @@ class TrashTycoon {
 
         // Start periodic upgrade display updates
         setInterval(() => this.updateUpgradesDisplay(), 100);
+
+        // Add sales tracking for the recycling quest
+        this.totalSales = {
+            plastic: 0,
+            paper: 0,
+            metal: 0
+        };
+
+        // Add developer console
+        this.devConsoleActive = false;
+        this.initDevConsole();
+
+        // Add tracking properties
+        this.hazardousItemsRemoved = 0;
+        this.rapidProcessingCount = 0;
+        this.cleanProcessingTime = 0;
+        this.cleanEcoPoints = 0;
+        this.cleanProcessingStreak = 0;
+        this.plasticEarnings = 0;
+        this.autoProcessedItems = 0;
+        this.autoProcessedTotal = 0;
+        this.optimalProcessingTime = 0;
     }
 
     init() {
@@ -248,10 +475,52 @@ class TrashTycoon {
     initializeQuests() {
         // Add click handlers for quest expansion
         document.querySelectorAll('.quest').forEach(quest => {
-            quest.addEventListener('click', () => {
-                quest.classList.toggle('expanded');
-            });
+            // First remove the click handler from the quest itself
+            quest.onclick = null;
+            
+            // Get the header element
+            const header = quest.querySelector('.quest-header');
+            if (header) {
+                // Remove any existing click handlers
+                header.onclick = null;
+                
+                // Add new click handler
+                header.onclick = (e) => {
+                    e.stopPropagation();
+                    quest.classList.toggle('expanded');
+                };
+            }
         });
+    }
+
+    initializeActiveQuests() {
+        // Initialize with random quest pairs from each SDG
+        this.sdgQuests = {
+            sdg11: this.getRandomQuestPair('sdg11'),
+            sdg12: this.getRandomQuestPair('sdg12'),
+            sdg13: this.getRandomQuestPair('sdg13'),
+            sdg14: this.getRandomQuestPair('sdg14'),
+            sdg15: this.getRandomQuestPair('sdg15'),
+            sdg7: this.getRandomQuestPair('sdg7')
+        };
+    }
+
+    getRandomQuestPair(sdg) {
+        // Get available quests that haven't been used recently
+        const availableQuests = this.questPool[sdg].filter(quest => 
+            !Object.values(this.sdgQuests || {}).flat().some(q => q && q.id === quest.id)
+        );
+
+        // Select two random quests
+        const shuffled = availableQuests.sort(() => 0.5 - Math.random());
+        const selectedQuests = shuffled.slice(0, 2);
+        
+        // Create quest objects with progress tracking
+        return selectedQuests.map(quest => ({
+            ...quest,
+            progress: 0,
+            completed: false
+        }));
     }
 
     collectTrash() {
@@ -334,6 +603,9 @@ class TrashTycoon {
         if (this.trashItems[type] > 0) {
             const amount = this.trashItems[type];
             let profit = amount * this.prices[type];
+            
+            // Track total sales for recycling quest
+            this.totalSales[type] += amount;
             
             // Apply bulk selling bonus if applicable
             if (amount >= 50 && this.upgrades.bulkSelling.level > 0) {
@@ -522,21 +794,20 @@ class TrashTycoon {
             const spots = document.querySelectorAll('.auto-collection-grid .trash-spot');
             let totalCollected = 0;
             
-            // Process all spots
             spots.forEach(spot => {
                 if (spot.dataset.type !== 'empty') {
                     const trashInfo = this.trashTypes[spot.dataset.type];
                     
                     if (!trashInfo.recyclable) {
-                        // Auto remove hazardous items
                         this.ecoPoints += 2;
                         this.showRemovalAnimation(spot, '+2 🌱 (Auto)', '#43a047');
                     } else {
-                        // Collect recyclable items
                         const amount = (Math.floor(Math.random() * 2) + 1) * this.baseCollectionAmount;
                         this.trashItems[spot.dataset.type] += amount;
                         totalCollected += amount;
                         this.showRemovalAnimation(spot, `+${amount} ${spot.dataset.type}`, '#2e7d32');
+                        this.autoProcessedItems++;
+                        this.autoProcessedTotal++;
                     }
                 }
             });
@@ -587,92 +858,47 @@ class TrashTycoon {
         Object.keys(this.sdgQuests).forEach(sdg => {
             const quests = this.sdgQuests[sdg];
             const completedQuests = quests.filter(q => q.completed).length;
-            const progress = Math.floor((completedQuests / quests.length) * 100);
             
-            this.sdgProgress[sdg] = progress;
-
-            // Update the display
-            const progressBar = document.getElementById(`${sdg}-progress`);
-            const progressText = progressBar.parentElement.nextElementSibling;
-            
-            progressBar.style.width = `${progress}%`;
-            progressText.textContent = `${progress}%`;
-
-            if (progress === 100 && !progressBar.classList.contains('completed')) {
-                progressBar.classList.add('completed');
+            // Only show badge unlock if all quests are completed
+            if (completedQuests === quests.length) {
                 this.showBadgeUnlocked(sdg);
             }
         });
     }
 
     updateQuestProgress() {
-        // SDG 11 Quests
-        const cleanCityQuest = this.sdgQuests.sdg11[0];
-        cleanCityQuest.progress = this.ecoPoints;
-        const cleanCityElement = document.querySelector('.quest[data-quest="cleanCity"]');
-        if (cleanCityElement) {
-            const progressBar = cleanCityElement.querySelector('.quest-progress');
-            const progressText = cleanCityElement.querySelector('.quest-progress-text');
-            const progress = Math.min(100, (cleanCityQuest.progress / cleanCityQuest.target) * 100);
-            
-            progressBar.style.width = `${progress}%`;
-            progressText.textContent = `${cleanCityQuest.progress}/${cleanCityQuest.target}`;
+        Object.entries(this.sdgQuests).forEach(([sdg, quests]) => {
+            quests.forEach(quest => {
+                const progress = quest.checkProgress();
+                quest.progress = progress;
 
-            if (cleanCityQuest.progress >= cleanCityQuest.target && !cleanCityQuest.completed) {
-                cleanCityQuest.completed = true;
-                cleanCityElement.classList.add('completed');
-                this.showQuestComplete(cleanCityQuest);
-            }
-        }
+                const questElement = document.querySelector(`.quest[data-quest="${quest.id}"]`);
+                if (questElement) {
+                    const progressBar = questElement.querySelector('.quest-progress');
+                    const progressText = questElement.querySelector('.quest-progress-text');
+                    const progressPercent = Math.min(100, (progress / quest.target) * 100);
 
-        const recyclingQuest = this.sdgQuests.sdg11[1];
-        const recyclingElement = document.querySelector('.quest[data-quest="recyclingCenter"]');
-        if (recyclingElement) {
-            const progressCounts = recyclingElement.querySelectorAll('.progress-count');
-            Object.entries(this.trashItems).forEach(([type, amount], index) => {
-                const progress = Math.min(recyclingQuest.target, amount);
-                recyclingQuest.progress[type] = progress;
-                if (progressCounts[index]) {
-                    progressCounts[index].textContent = progress;
+                    progressBar.style.width = `${progressPercent}%`;
+                    progressText.textContent = `${progress}/${quest.target}`;
+
+                    if (progress >= quest.target && !quest.completed) {
+                        quest.completed = true;
+                        questElement.classList.add('completed');
+                        this.showQuestComplete(quest);
+                    }
                 }
             });
-
-            if (Object.values(recyclingQuest.progress).every(p => p >= recyclingQuest.target) && !recyclingQuest.completed) {
-                recyclingQuest.completed = true;
-                recyclingElement.classList.add('completed');
-                this.showQuestComplete(recyclingQuest);
-            }
-        }
-
-        // SDG 12 Quests
-        const sortingQuest = this.sdgQuests.sdg12[0];
-        sortingQuest.progress = this.upgrades.autoCollector.level;
-        if (sortingQuest.progress >= sortingQuest.target && !sortingQuest.completed) {
-            sortingQuest.completed = true;
-            this.showQuestComplete(sortingQuest);
-        }
-
-        // SDG 13 Quests
-        const greenTechQuest = this.sdgQuests.sdg13[0];
-        greenTechQuest.progress = {
-            autoCollector: this.upgrades.autoCollector.level > 0,
-            betterPrices: this.upgrades.betterPrices.level > 0,
-            largerStorage: this.upgrades.largerStorage.level > 0
-        };
-        if (Object.values(greenTechQuest.progress).every(p => p) && !greenTechQuest.completed) {
-            greenTechQuest.completed = true;
-            this.showQuestComplete(greenTechQuest);
-        }
-
-        const carbonReductionQuest = this.sdgQuests.sdg13[1];
-        carbonReductionQuest.progress = this.ecoPoints;
-        if (carbonReductionQuest.progress >= carbonReductionQuest.target && !carbonReductionQuest.completed) {
-            carbonReductionQuest.completed = true;
-            this.showQuestComplete(carbonReductionQuest);
-        }
+        });
     }
 
     showQuestComplete(quest) {
+        // Add completing animation to the quest element
+        const questElement = document.querySelector(`.quest[data-quest="${quest.id}"]`);
+        if (questElement) {
+            questElement.classList.add('completing');
+            setTimeout(() => questElement.classList.remove('completing'), 1000);
+        }
+
         const notification = document.createElement('div');
         notification.className = 'quest-complete';
         notification.innerHTML = `
@@ -682,18 +908,101 @@ class TrashTycoon {
         `;
         document.body.appendChild(notification);
         
-        // Add reward
+        // Add reward with animation
         this.money += quest.reward;
         this.updateDisplay();
 
-        setTimeout(() => notification.remove(), 3000);
+        // Remove notification after animation
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 3000);
+
+        // Replace completed quest with a new one from a different SDG
+        setTimeout(() => this.replaceCompletedQuest(quest), 1500);
+    }
+
+    replaceCompletedQuest(completedQuest) {
+        const currentSdg = Object.entries(this.sdgQuests).find(([_, quests]) => 
+            quests.some(q => q.id === completedQuest.id)
+        )[0];
+
+        // Get next SDG in rotation (11 -> 12 -> 13 -> 14 -> 15 -> 7 -> 11)
+        const sdgOrder = ['sdg11', 'sdg12', 'sdg13', 'sdg14', 'sdg15', 'sdg7'];
+        const currentIndex = sdgOrder.indexOf(currentSdg);
+        const nextSdg = sdgOrder[(currentIndex + 1) % sdgOrder.length];
+
+        const newQuest = this.getRandomQuestPair(nextSdg);
+        this.sdgQuests[currentSdg] = newQuest;
+        this.updateQuestDisplay(currentSdg, newQuest);
+    }
+
+    getRandomQuestPair(sdg) {
+        // Get available quests that haven't been used recently
+        const availableQuests = this.questPool[sdg].filter(quest => 
+            !Object.values(this.sdgQuests || {}).flat().some(q => q && q.id === quest.id)
+        );
+
+        // Select two random quests
+        const shuffled = availableQuests.sort(() => 0.5 - Math.random());
+        const selectedQuests = shuffled.slice(0, 2);
+        
+        // Create quest objects with progress tracking
+        return selectedQuests.map(quest => ({
+            ...quest,
+            progress: 0,
+            completed: false
+        }));
+    }
+
+    updateQuestDisplay(sdg, quests) {
+        const questElement = document.querySelector(`.sdg-badge[data-sdg="${sdg.slice(-2)}"] .quest-list`);
+        if (questElement) {
+            questElement.innerHTML = quests.map(quest => {
+                // Check if quest needs material progress display
+                const isRecyclingQuest = quest.id === 'recyclingCenter';
+                
+                const progressDisplay = isRecyclingQuest ? `
+                    <div class="material-progress">
+                        <span>Plastic: <span class="progress-count">0</span>/50</span>
+                        <span>Paper: <span class="progress-count">0</span>/50</span>
+                        <span>Metal: <span class="progress-count">0</span>/50</span>
+                    </div>
+                ` : `
+                    <div class="quest-progress-bar">
+                        <div class="quest-progress" style="width: 0%"></div>
+                    </div>
+                    <span class="quest-progress-text">0/${quest.target}</span>
+                `;
+
+                return `
+                    <div class="quest" data-quest="${quest.id}">
+                        <div class="quest-header" style="cursor: pointer;">
+                            <p>${quest.title}</p>
+                            <span class="expand-arrow">▼</span>
+                        </div>
+                        <div class="quest-details">
+                            <small>${quest.description}</small>
+                            ${progressDisplay}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Reinitialize quest click handlers
+            this.initializeQuests();
+        }
     }
 
     showBadgeUnlocked(sdg) {
         const badgeNames = {
             sdg11: 'Sustainable Cities',
             sdg12: 'Responsible Consumption',
-            sdg13: 'Climate Action'
+            sdg13: 'Climate Action',
+            sdg14: 'Life Below Water',
+            sdg15: 'Life on Land',
+            sdg7: 'Clean Energy'
         };
 
         const notification = document.createElement('div');
@@ -710,6 +1019,8 @@ class TrashTycoon {
 
     updateCollectionZone(selector) {
         const spots = document.querySelectorAll(selector);
+        const isMainGrid = selector.includes('collection-grid');
+        
         spots.forEach(spot => {
             if (spot.dataset.type === 'empty') {
                 if (Math.random() < this.spawnRate) {
@@ -727,12 +1038,12 @@ class TrashTycoon {
                     
                     spot.classList.add('active');
                     
-                    // Apply hazard scanner effect
-                    if (this.hazardScanningLevel > 0 && !this.trashTypes[spot.dataset.type].recyclable) {
+                    // Apply hazard scanner effect only to main collection grid
+                    if (isMainGrid && this.hazardScanningLevel > 0 && !this.trashTypes[spot.dataset.type].recyclable) {
                         spot.classList.add('hazardous');
                     }
                     
-                    if (selector.includes('collection-grid')) {
+                    if (isMainGrid) {
                         spot.onclick = (e) => {
                             e.stopPropagation();
                             this.handleTrashClick(spot);
@@ -748,9 +1059,10 @@ class TrashTycoon {
         const trashInfo = this.trashTypes[type];
         
         if (!trashInfo.recyclable) {
-            // Add eco points for responsible disposal
             this.ecoPoints += 2;
             this.showRemovalAnimation(spot, '+2 🌱', '#43a047');
+            spot.classList.remove('hazardous');
+            this.hazardousItemsRemoved++; // Track hazardous items removed
         } else {
             // Penalize for removing recyclable items
             this.ecoPoints = Math.max(0, this.ecoPoints - 1);
@@ -878,6 +1190,107 @@ class TrashTycoon {
     updateRecyclingBonus() {
         // Chance for bonus materials
         this.recyclingBonus = this.upgrades.recyclingEfficiency.level * 0.1;
+    }
+
+    initDevConsole() {
+        // Create dev console element
+        const devConsole = document.createElement('div');
+        devConsole.className = 'dev-console';
+        devConsole.style.display = 'none';
+        devConsole.innerHTML = `
+            <div class="dev-console-header">
+                <h3>Developer Console</h3>
+                <button class="dev-console-close">×</button>
+            </div>
+            <div class="dev-console-content">
+                <button onclick="game.addMoney(100)">Add $100</button>
+                <button onclick="game.addEcoPoints(50)">Add 50 Eco Points</button>
+                <button onclick="game.fillBins()">Fill Bins</button>
+                <button onclick="game.completeAllQuests()">Complete All Quests</button>
+            </div>
+        `;
+        document.body.appendChild(devConsole);
+
+        // Add keyboard listener for toggle
+        document.addEventListener('keydown', (e) => {
+            if (e.key === '+' || e.key === '=') {
+                this.toggleDevConsole();
+            }
+        });
+
+        // Add close button listener
+        devConsole.querySelector('.dev-console-close').addEventListener('click', () => {
+            this.toggleDevConsole();
+        });
+
+        // Store reference
+        this.devConsoleElement = devConsole;
+    }
+
+    toggleDevConsole() {
+        this.devConsoleActive = !this.devConsoleActive;
+        this.devConsoleElement.style.display = this.devConsoleActive ? 'block' : 'none';
+    }
+
+    // Dev console commands
+    addMoney(amount) {
+        this.money += amount;
+        this.updateDisplay();
+    }
+
+    addEcoPoints(amount) {
+        this.ecoPoints += amount;
+        this.updateDisplay();
+        this.updateSDGProgress();
+    }
+
+    fillBins() {
+        Object.keys(this.trashItems).forEach(type => {
+            this.trashItems[type] += 50;
+        });
+        this.updateDisplay();
+    }
+
+    completeAllQuests() {
+        Object.keys(this.sdgQuests).forEach(sdg => {
+            this.sdgQuests[sdg].forEach(quest => {
+                if (!quest.completed) {
+                    quest.completed = true;
+                    this.showQuestComplete(quest);
+                }
+            });
+        });
+        this.updateSDGProgress();
+    }
+
+    // Add method to track rapid processing
+    startRapidProcessingTracking() {
+        this.rapidProcessingCount = 0;
+        this.rapidProcessingTimer = setTimeout(() => {
+            this.rapidProcessingCount = 0;
+        }, 60000); // Reset after 1 minute
+    }
+
+    // Add method to track clean processing time
+    startCleanProcessingTracking() {
+        let cleanTime = 0;
+        this.cleanProcessingInterval = setInterval(() => {
+            if (!this.hasContamination) {
+                cleanTime++;
+                this.cleanProcessingTime = cleanTime;
+            } else {
+                cleanTime = 0;
+            }
+        }, 1000);
+    }
+
+    // Add method to track clean eco points
+    updateCleanEcoPoints(points) {
+        if (!this.hasContamination) {
+            this.cleanEcoPoints += points;
+        } else {
+            this.cleanEcoPoints = 0;
+        }
     }
 }
 
