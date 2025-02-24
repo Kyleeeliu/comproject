@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trash Tycoon</title>
+    <title>EcoEmpire</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="game-container">
         <!-- Header Section -->
         <header>
-            <h1>Trash Tycoon</h1>
+            <h1>EcoEmpire</h1>
             <div class="resources">
                 <div class="money">💰 $<span id="money">0</span></div>
                 <div class="eco-points">🌱 <span id="ecoPoints">0</span></div>
@@ -31,12 +31,31 @@
                         <span class="progress-text">0%</span>
                         <div class="quest-list">
                             <div class="quest" data-quest="cleanCity">
-                                <p>Clean City Initiative</p>
-                                <small>Clean up 100 pieces of trash</small>
+                                <div class="quest-header">
+                                    <p>Clean City Initiative</p>
+                                    <span class="expand-arrow">▼</span>
+                                </div>
+                                <div class="quest-details">
+                                    <small>Clean up 100 pieces of trash</small>
+                                    <div class="quest-progress-bar">
+                                        <div class="quest-progress" style="width: 0%"></div>
+                                    </div>
+                                    <span class="quest-progress-text">0/100</span>
+                                </div>
                             </div>
                             <div class="quest" data-quest="recyclingCenter">
-                                <p>Build Recycling Centers</p>
-                                <small>Sell 50 pieces of each material</small>
+                                <div class="quest-header">
+                                    <p>Build Recycling Centers</p>
+                                    <span class="expand-arrow">▼</span>
+                                </div>
+                                <div class="quest-details">
+                                    <small>Sell 50 pieces of each material</small>
+                                    <div class="material-progress">
+                                        <span>Plastic: <span class="progress-count">0</span>/50</span>
+                                        <span>Paper: <span class="progress-count">0</span>/50</span>
+                                        <span>Metal: <span class="progress-count">0</span>/50</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -69,8 +88,33 @@
             <!-- Collection Area -->
             <div class="collection-area">
                 <h2>Collection Zone</h2>
-                <div id="trashSpawnArea"></div>
-                <button id="collectTrash">Collect Trash</button>
+                <div class="collection-grid">
+                    <div class="trash-spot" data-type="plastic">🥤</div>
+                    <div class="trash-spot" data-type="paper">📰</div>
+                    <div class="trash-spot" data-type="metal">🥫</div>
+                    <div class="trash-spot" data-type="plastic">♳</div>
+                    <div class="trash-spot" data-type="paper">📦</div>
+                    <div class="trash-spot" data-type="metal">🔧</div>
+                    <div class="trash-spot" data-type="plastic">🧃</div>
+                    <div class="trash-spot" data-type="paper">📝</div>
+                    <div class="trash-spot" data-type="metal">⚙️</div>
+                </div>
+                <div class="collection-controls">
+                    <button id="collectTrash" class="collect-button">
+                        <span class="button-icon">🧹</span>
+                        <span class="button-text">Clean Up Zone</span>
+                    </button>
+                    <div class="collection-stats">
+                        <div class="stat">
+                            <span class="stat-label">Collection Speed:</span>
+                            <span class="stat-value" id="collectionSpeed">1x</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Last Collected:</span>
+                            <span class="stat-value" id="lastCollected">-</span>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Sorting Area -->

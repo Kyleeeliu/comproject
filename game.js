@@ -132,21 +132,56 @@ class TrashTycoon {
 
         this.updateDisplay();
         this.updateUpgradesDisplay();
+        
+        // Initialize collection zone
+        this.updateCollectionZone();
+        
+        // Update collection zone periodically
+        setInterval(() => this.updateCollectionZone(), 5000);
+
+        // Initialize quest UI
+        this.initializeQuests();
+    }
+
+    initializeQuests() {
+        // Add click handlers for quest expansion
+        document.querySelectorAll('.quest').forEach(quest => {
+            quest.addEventListener('click', () => {
+                quest.classList.toggle('expanded');
+            });
+        });
     }
 
     collectTrash() {
-        // Random trash collection
-        const types = ['plastic', 'paper', 'metal'];
-        const randomType = types[Math.floor(Math.random() * types.length)];
-        const amount = (Math.floor(Math.random() * 3) + 1) * this.baseCollectionAmount;
+        const activeSpots = document.querySelectorAll('.trash-spot.active');
+        let totalCollected = 0;
         
-        this.trashItems[randomType] += amount;
-        this.ecoPoints += amount;
+        activeSpots.forEach(spot => {
+            const type = spot.dataset.type;
+            const amount = (Math.floor(Math.random() * 3) + 1) * this.baseCollectionAmount;
+            
+            this.trashItems[type] += amount;
+            totalCollected += amount;
+            
+            // Show collection animation
+            spot.classList.remove('active');
+            spot.classList.add('spawning');
+            setTimeout(() => spot.classList.remove('spawning'), 300);
+        });
+        
+        if (totalCollected > 0) {
+            this.ecoPoints += totalCollected;
+            document.getElementById('lastCollected').textContent = `${totalCollected} items`;
+            document.getElementById('collectionSpeed').textContent = 
+                `${this.baseCollectionAmount}x`;
+        }
         
         this.updateDisplay();
         this.updateUpgradesDisplay();
-        this.showCollectionAnimation(randomType, amount);
         this.updateSDGProgress();
+        
+        // Spawn new trash after a delay
+        setTimeout(() => this.updateCollectionZone(), 1000);
     }
 
     sellTrash(type) {
@@ -356,20 +391,39 @@ class TrashTycoon {
         // SDG 11 Quests
         const cleanCityQuest = this.sdgQuests.sdg11[0];
         cleanCityQuest.progress = this.ecoPoints;
-        if (cleanCityQuest.progress >= cleanCityQuest.target && !cleanCityQuest.completed) {
-            cleanCityQuest.completed = true;
-            this.showQuestComplete(cleanCityQuest);
+        const cleanCityElement = document.querySelector('.quest[data-quest="cleanCity"]');
+        if (cleanCityElement) {
+            const progressBar = cleanCityElement.querySelector('.quest-progress');
+            const progressText = cleanCityElement.querySelector('.quest-progress-text');
+            const progress = Math.min(100, (cleanCityQuest.progress / cleanCityQuest.target) * 100);
+            
+            progressBar.style.width = `${progress}%`;
+            progressText.textContent = `${cleanCityQuest.progress}/${cleanCityQuest.target}`;
+
+            if (cleanCityQuest.progress >= cleanCityQuest.target && !cleanCityQuest.completed) {
+                cleanCityQuest.completed = true;
+                cleanCityElement.classList.add('completed');
+                this.showQuestComplete(cleanCityQuest);
+            }
         }
 
         const recyclingQuest = this.sdgQuests.sdg11[1];
-        Object.keys(this.trashItems).forEach(type => {
-            if (this.trashItems[type] >= recyclingQuest.target) {
-                recyclingQuest.progress[type] = recyclingQuest.target;
+        const recyclingElement = document.querySelector('.quest[data-quest="recyclingCenter"]');
+        if (recyclingElement) {
+            const progressCounts = recyclingElement.querySelectorAll('.progress-count');
+            Object.entries(this.trashItems).forEach(([type, amount], index) => {
+                const progress = Math.min(recyclingQuest.target, amount);
+                recyclingQuest.progress[type] = progress;
+                if (progressCounts[index]) {
+                    progressCounts[index].textContent = progress;
+                }
+            });
+
+            if (Object.values(recyclingQuest.progress).every(p => p >= recyclingQuest.target) && !recyclingQuest.completed) {
+                recyclingQuest.completed = true;
+                recyclingElement.classList.add('completed');
+                this.showQuestComplete(recyclingQuest);
             }
-        });
-        if (Object.values(recyclingQuest.progress).every(p => p >= recyclingQuest.target) && !recyclingQuest.completed) {
-            recyclingQuest.completed = true;
-            this.showQuestComplete(recyclingQuest);
         }
 
         // SDG 12 Quests
@@ -434,6 +488,17 @@ class TrashTycoon {
         document.body.appendChild(notification);
         
         setTimeout(() => notification.remove(), 3000);
+    }
+
+    updateCollectionZone() {
+        const spots = document.querySelectorAll('.trash-spot');
+        spots.forEach(spot => {
+            if (Math.random() < 0.3) { // 30% chance for each spot
+                spot.classList.add('active');
+            } else {
+                spot.classList.remove('active');
+            }
+        });
     }
 }
 
