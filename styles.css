@@ -931,4 +931,48 @@ header h1 {
         transform: translateY(20px);
         opacity: 0;
     }
+}
+
+.info-tooltip {
+    position: relative;
+    cursor: help;
+    font-size: 0.8em;
+    margin-left: 8px;
+    color: #43a047;
+}
+
+.info-tooltip .tooltip-text {
+    visibility: hidden;
+    position: absolute;
+    width: 250px;
+    background-color: rgba(0, 0, 0, 0.9);
+    color: #fff;
+    text-align: center;
+    padding: 10px;
+    border-radius: 6px;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.9em;
+    font-weight: normal;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.info-tooltip:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Add arrow to tooltip */
+.info-tooltip .tooltip-text::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: rgba(0, 0, 0, 0.9) transparent transparent transparent;
 } 
