@@ -129,6 +129,8 @@ class TrashTycoon {
             metal: false
         };
 
+        // Initialize separate collection zones
+        this.mainCollectionActive = true;  // Flag to track which zone is being updated
         this.init();
     }
 
@@ -150,11 +152,11 @@ class TrashTycoon {
         this.updateDisplay();
         this.updateUpgradesDisplay();
         
-        // Initialize collection zone
-        this.updateCollectionZone();
+        // Initialize main collection zone only
+        this.updateCollectionZone('.collection-grid .trash-spot');
         
-        // Update collection zone periodically
-        setInterval(() => this.updateCollectionZone(), 5000);
+        // Update main collection zone periodically
+        setInterval(() => this.updateCollectionZone('.collection-grid .trash-spot'), 5000);
 
         // Initialize quest UI
         this.initializeQuests();
@@ -170,7 +172,7 @@ class TrashTycoon {
     }
 
     collectTrash() {
-        const spots = document.querySelectorAll('.trash-spot');
+        const spots = document.querySelectorAll('.collection-grid .trash-spot');
         let totalCollected = 0;
         let contaminated = false;
         
@@ -185,15 +187,22 @@ class TrashTycoon {
         });
         
         if (contaminated) {
-            // Penalize for collecting contaminated materials
+            // Apply monetary fine and eco points penalty
+            const fine = 10;
+            this.money = Math.max(0, this.money - fine);
             this.ecoPoints = Math.max(0, this.ecoPoints - 5);
             
             const notification = document.createElement('div');
             notification.className = 'contamination-alert';
             notification.innerHTML = `
-                <h3>⚠️ Contamination Alert!</h3>
-                <p>Area contaminated! Remove hazardous items first!</p>
-                <p class="penalty">-5 🌱</p>
+                <h3>⚠️ Environmental Violation Notice</h3>
+                <p>Hazardous materials detected in recycling stream.</p>
+                <p>Municipal Code Violation: Section 7.4</p>
+                <div class="penalty-details">
+                    <p class="penalty">Fine: -$${fine}</p>
+                    <p class="penalty">Eco Impact: -5 🌱</p>
+                </div>
+                <small>Please remove hazardous materials before collection.</small>
             `;
             document.body.appendChild(notification);
             setTimeout(() => notification.remove(), 3000);
@@ -216,7 +225,7 @@ class TrashTycoon {
             }
         }
 
-        // Clear all spots regardless of contamination
+        // Clear all spots in main collection grid
         spots.forEach(spot => {
             spot.textContent = '';
             spot.dataset.type = 'empty';
@@ -230,20 +239,9 @@ class TrashTycoon {
         this.updateUpgradesDisplay();
         this.updateSDGProgress();
         
-        // Spawn new items after a delay
+        // Spawn new items after a delay only in main collection grid
         setTimeout(() => {
-            spots.forEach(spot => {
-                const types = Object.keys(this.trashTypes);
-                const randomType = types[Math.floor(Math.random() * types.length)];
-                spot.dataset.type = randomType;
-                spot.textContent = this.trashTypes[randomType].emoji;
-                spot.classList.add('active');
-                
-                spot.onclick = (e) => {
-                    e.stopPropagation();
-                    this.handleTrashClick(spot);
-                };
-            });
+            this.updateCollectionZone('.collection-grid .trash-spot');
         }, 500);
     }
 
@@ -408,7 +406,58 @@ class TrashTycoon {
         }
 
         const collectionSpeed = Math.max(5000 - (this.upgrades.autoCollector.level * 500), 1000);
-        this.autoCollectorInterval = setInterval(() => this.collectTrash(), collectionSpeed);
+        document.getElementById('autoSpeed').textContent = 
+            `${((5000 - collectionSpeed) / 500 + 1).toFixed(1)}x`;
+        
+        // Initial population of auto collector grid
+        this.updateCollectionZone('.auto-collection-grid .trash-spot');
+        
+        this.autoCollectorInterval = setInterval(() => {
+            const spots = document.querySelectorAll('.auto-collection-grid .trash-spot');
+            let totalCollected = 0;
+            
+            // Process all spots
+            spots.forEach(spot => {
+                if (spot.dataset.type !== 'empty') {
+                    const trashInfo = this.trashTypes[spot.dataset.type];
+                    
+                    if (!trashInfo.recyclable) {
+                        // Auto remove hazardous items
+                        this.ecoPoints += 2;
+                        this.showRemovalAnimation(spot, '+2 🌱 (Auto)', '#43a047');
+                    } else {
+                        // Collect recyclable items
+                        const amount = (Math.floor(Math.random() * 2) + 1) * this.baseCollectionAmount;
+                        this.trashItems[spot.dataset.type] += amount;
+                        totalCollected += amount;
+                        this.showRemovalAnimation(spot, `+${amount} ${spot.dataset.type}`, '#2e7d32');
+                    }
+                }
+            });
+
+            if (totalCollected > 0) {
+                this.ecoPoints += totalCollected;
+            }
+
+            // Clear all spots
+            spots.forEach(spot => {
+                spot.textContent = '';
+                spot.dataset.type = 'empty';
+                spot.classList.remove('active');
+                spot.classList.add('spawning');
+            });
+
+            // Update displays
+            this.updateDisplay();
+            this.updateUpgradesDisplay();
+            this.updateSDGProgress();
+
+            // Spawn new items after a delay
+            setTimeout(() => {
+                this.updateCollectionZone('.auto-collection-grid .trash-spot');
+            }, 300);
+
+        }, collectionSpeed);
     }
 
     updatePrices() {
@@ -553,8 +602,8 @@ class TrashTycoon {
         setTimeout(() => notification.remove(), 3000);
     }
 
-    updateCollectionZone() {
-        const spots = document.querySelectorAll('.trash-spot');
+    updateCollectionZone(selector) {
+        const spots = document.querySelectorAll(selector);
         spots.forEach(spot => {
             // Only update empty spots
             if (spot.dataset.type === 'empty') {
@@ -565,11 +614,13 @@ class TrashTycoon {
                     spot.textContent = this.trashTypes[randomType].emoji;
                     spot.classList.add('active');
                     
-                    // Add click handler for manual removal
-                    spot.onclick = (e) => {
-                        e.stopPropagation();
-                        this.handleTrashClick(spot);
-                    };
+                    // Add click handler for manual removal only to main collection zone
+                    if (selector.includes('collection-grid')) {
+                        spot.onclick = (e) => {
+                            e.stopPropagation();
+                            this.handleTrashClick(spot);
+                        };
+                    }
                 }
             }
         });
@@ -614,6 +665,7 @@ class TrashTycoon {
             animation: fadeUp 1s ease-out;
             pointer-events: none;
             z-index: 1000;
+            font-size: ${spot.classList.contains('small') ? '0.8em' : '1em'};
         `;
         document.body.appendChild(notification);
         setTimeout(() => notification.remove(), 1000);
