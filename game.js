@@ -1102,25 +1102,31 @@ class TrashTycoon {
 
     // Add new methods for upgrade effects
     updateHazardProtection() {
-        this.hazardProtectionLevel = Math.max(0.2, 1 - (this.upgrades.hazardProtection.level * 0.2));
+        // Reduce fines by 15% per level, caps at 80%
+        const reduction = Math.min(0.8, this.upgrades.hazardProtection.level * 0.15);
+        this.hazardProtectionLevel = Math.max(0.2, 1 - reduction);
     }
 
     updateEcoMultiplier() {
-        this.ecoMultiplier = 1 + (this.upgrades.ecoBooster.level * 0.25);
+        // 15% increase per level, logarithmic scaling
+        const level = this.upgrades.ecoBooster.level;
+        this.ecoMultiplier = 1 + (0.15 * Math.log2(level + 1));
     }
 
     updateSpawnRates() {
-        this.valuableSpawnRate = 0.3 + (this.upgrades.smartSorting.level * 0.1);
+        // Increase valuable spawn rate by 5% per level, caps at 50%
+        this.valuableSpawnRate = 0.2 + Math.min(0.3, this.upgrades.smartSorting.level * 0.05);
     }
 
     updateMultiCollector() {
-        this.multiCollectorCount = 1 + this.upgrades.multiCollector.level;
-        // Auto collector will now process multiple spots based on level
+        // Add 1 spot every 2 levels, caps at 4 additional spots
+        this.multiCollectorCount = 1 + Math.min(4, Math.floor(this.upgrades.multiCollector.level / 2));
     }
 
     updateAutoSeller() {
-        this.autoSellThreshold = this.upgrades.autoSeller.level * 0.1; // 10% per level
-        if (this.autoSellThreshold > 0) {
+        // Start at 50% full, improve by 5% per level
+        this.autoSellThreshold = Math.max(0.2, 0.5 - (this.upgrades.autoSeller.level * 0.05));
+        if (this.autoSellThreshold < 1) {
             this.startAutoSeller();
         }
     }
@@ -1136,36 +1142,47 @@ class TrashTycoon {
     }
 
     updateStorageCapacity() {
-        this.storageMultiplier = 1 + (this.upgrades.smartStorage.level * 0.5); // 50% increase per level
+        // 25% increase per level, diminishing returns after level 10
+        const level = this.upgrades.smartStorage.level;
+        this.storageMultiplier = 1 + (0.25 * Math.min(level, 10) + 0.1 * Math.max(0, level - 10));
     }
 
     updateGoldenTouch() {
-        this.goldenTouchChance = this.upgrades.goldenTouch.level * 0.05; // 5% chance per level
+        // Logarithmic scaling from 5% to 50%
+        const maxChance = 0.5;
+        const level = this.upgrades.goldenTouch.level;
+        this.goldenTouchChance = Math.min(maxChance, 0.05 * Math.log2(level + 1));
     }
 
     updateEcoMagnet() {
-        this.spawnRate = 0.3 + (this.upgrades.ecoMagnet.level * 0.1); // 10% faster spawning per level
+        // Increase spawn rate by 7% per level, logarithmic scaling
+        const level = this.upgrades.ecoMagnet.level;
+        this.spawnRate = 0.3 + (0.07 * Math.log2(level + 1));
     }
 
     updateCityInspiration() {
-        this.cityBonus = 1 + (this.upgrades.cityInspiration.level * 0.2); // 20% bonus per level
+        // 10% bonus per level, logarithmic scaling
+        const level = this.upgrades.cityInspiration.level;
+        this.cityBonus = 1 + (0.1 * Math.log2(level + 1));
     }
 
     updateCollectionSpeed() {
-        // Reduce collection cooldown
-        this.collectionCooldown = Math.max(1000, 5000 - (this.upgrades.quickCollection.level * 750));
+        // Start at 5s, decrease by 0.4s per level, minimum 1s
+        this.collectionCooldown = Math.max(1000, 5000 - (this.upgrades.quickCollection.level * 400));
     }
 
     updateBulkBonus() {
-        // Update bulk selling bonus
-        this.bulkBonus = 1 + (this.upgrades.bulkSelling.level * 0.1);
+        // 5% bonus per level, caps at 50%
+        this.bulkBonus = 1 + Math.min(0.5, this.upgrades.bulkSelling.level * 0.05);
     }
 
     startPassiveIncome() {
-        // Start passive income based on eco points
+        // Base 0.5% of eco points per level, logarithmic scaling
         if (!this.passiveIncomeInterval) {
             this.passiveIncomeInterval = setInterval(() => {
-                const income = Math.floor(this.ecoPoints * 0.01 * this.upgrades.passiveIncome.level);
+                const level = this.upgrades.passiveIncome.level;
+                const rate = 0.005 * Math.log2(level + 1);
+                const income = Math.floor(this.ecoPoints * rate);
                 if (income > 0) {
                     this.money += income;
                     this.updateDisplay();
@@ -1175,9 +1192,11 @@ class TrashTycoon {
     }
 
     updateEnergyEfficiency() {
-        // Make auto collector faster
+        // 20% faster auto collection per level, diminishing returns
+        const level = this.upgrades.greenEnergy.level;
+        this.energyEfficiency = 1 + (0.2 * Math.log2(level + 1));
         if (this.autoCollectorInterval) {
-            this.startAutoCollection(); // Restart with new speed
+            this.startAutoCollection();
         }
     }
 
