@@ -5,13 +5,23 @@ class TrashTycoon {
         this.trashItems = {
             plastic: 0,
             paper: 0,
-            metal: 0
+            metal: 0,
+            computer: 0,
+            glass: 0,
+            gemstone: 0,
+            gold: 0,
+            battery: 0
         };
         
         this.prices = {
             plastic: 1,
             paper: 2,
-            metal: 5
+            metal: 5,
+            computer: 25,
+            glass: 15,
+            gemstone: 50,
+            gold: 75,
+            battery: 20
         };
 
         // Add upgrades configuration
@@ -388,12 +398,18 @@ class TrashTycoon {
 
         // Add non-recyclable types
         this.trashTypes = {
-            plastic: { emoji: '🥤', recyclable: true },
-            paper: { emoji: '📰', recyclable: true },
-            metal: { emoji: '🥫', recyclable: true },
-            organic: { emoji: '🍎', recyclable: false },
-            toxic: { emoji: '☢️', recyclable: false },
-            unknown: { emoji: '❓', recyclable: false }
+            // Regular items
+            plastic: { emoji: '🥤', recyclable: true, value: 1 },
+            paper: { emoji: '📄', recyclable: true, value: 2 },
+            metal: { emoji: '🥫', recyclable: true, value: 5 },
+            // Hazardous items
+            hazard: { emoji: '⚠️', recyclable: false, value: 0 },
+            // Rare items
+            computer: { emoji: '💻', recyclable: true, value: 25, rare: true },
+            glass: { emoji: '🔮', recyclable: true, value: 15, rare: true },
+            gemstone: { emoji: '💎', recyclable: true, value: 50, rare: true },
+            gold: { emoji: '🏆', recyclable: true, value: 75, rare: true },
+            battery: { emoji: '🔋', recyclable: true, value: 20, rare: true }
         };
 
         // Add contamination tracking
@@ -442,6 +458,18 @@ class TrashTycoon {
         this.autoProcessedItems = 0;
         this.autoProcessedTotal = 0;
         this.optimalProcessingTime = 0;
+
+        // Add rare items collection tracking
+        this.rareItemsCollected = {
+            computer: 0,
+            glass: 0,
+            gemstone: 0,
+            gold: 0,
+            battery: 0
+        };
+
+        // Base spawn rates
+        this.baseRareSpawnRate = 0.08; // Increase to 8% chance for rare items
     }
 
     init() {
@@ -583,8 +611,8 @@ class TrashTycoon {
         spots.forEach(spot => {
             spot.textContent = '';
             spot.dataset.type = 'empty';
-            // Make sure to explicitly remove the hazardous class
-            spot.classList.remove('hazardous');
+            // Make sure to remove both hazardous and valuable classes
+            spot.classList.remove('hazardous', 'valuable');
             spot.classList.add('spawning');
             spot.onclick = null;
             setTimeout(() => spot.classList.remove('spawning'), 300);
@@ -601,23 +629,22 @@ class TrashTycoon {
     }
 
     sellTrash(type) {
-        if (this.trashItems[type] > 0) {
-            const amount = this.trashItems[type];
-            let profit = amount * this.prices[type];
+        const amount = this.trashItems[type];
+        if (amount > 0) {
+            const basePrice = this.prices[type];
+            const bulkBonus = amount >= 100 ? this.bulkBonus : 1;
+            const totalPrice = Math.floor(amount * basePrice * bulkBonus);
             
-            // Track total sales for recycling quest
-            this.totalSales[type] += amount;
+            this.money += totalPrice;
+            this.trashItems[type] = 0;
             
-            // Apply bulk selling bonus if applicable
-            if (amount >= 50 && this.upgrades.bulkSelling.level > 0) {
-                const bulkBonus = 1 + (this.upgrades.bulkSelling.level * 0.1);
-                profit = Math.floor(profit * bulkBonus);
+            // Update total sales tracking
+            if (this.totalSales[type] !== undefined) {
+                this.totalSales[type] += amount;
             }
             
-            this.money += profit;
-            this.trashItems[type] = 0;
             this.updateDisplay();
-            this.showSellAnimation(profit, amount, type);
+            this.updateUpgradesDisplay();
             this.updateSDGProgress();
         }
     }
@@ -821,8 +848,8 @@ class TrashTycoon {
             spots.forEach(spot => {
                 spot.textContent = '';
                 spot.dataset.type = 'empty';
-                // Explicitly remove the hazardous class
-                spot.classList.remove('hazardous');
+                // Make sure to remove both hazardous and valuable classes
+                spot.classList.remove('hazardous', 'valuable');
                 spot.classList.add('spawning');
             });
 
@@ -844,7 +871,12 @@ class TrashTycoon {
         this.prices = {
             plastic: Math.floor(1 * multiplier),
             paper: Math.floor(2 * multiplier),
-            metal: Math.floor(5 * multiplier)
+            metal: Math.floor(5 * multiplier),
+            computer: Math.floor(25 * multiplier),
+            glass: Math.floor(15 * multiplier),
+            gemstone: Math.floor(50 * multiplier),
+            gold: Math.floor(75 * multiplier),
+            battery: Math.floor(20 * multiplier)
         };
     }
 
@@ -1026,16 +1058,26 @@ class TrashTycoon {
         spots.forEach(spot => {
             if (spot.dataset.type === 'empty') {
                 if (Math.random() < this.spawnRate) {
-                    const types = Object.keys(this.trashTypes);
-                    // Apply golden touch chance
-                    if (Math.random() < this.goldenTouchChance) {
-                        spot.dataset.type = 'metal';
-                        spot.textContent = this.trashTypes.metal.emoji;
+                    // First check for rare spawn
+                    const isRareSpawn = Math.random() < this.baseRareSpawnRate;
+                    if (isRareSpawn) {
+                        const rareTypes = ['computer', 'glass', 'gemstone', 'gold', 'battery'];
+                        const rareType = rareTypes[Math.floor(Math.random() * rareTypes.length)];
+                        spot.dataset.type = rareType;
+                        spot.textContent = this.trashTypes[rareType].emoji;
+                        spot.classList.add('valuable');
                     } else {
-                        // Random selection from other types
-                        const otherTypes = types.filter(t => t !== 'metal');
-                        spot.dataset.type = otherTypes[Math.floor(Math.random() * otherTypes.length)];
-                        spot.textContent = this.trashTypes[spot.dataset.type].emoji;
+                        // Then check for golden touch
+                        if (Math.random() < this.goldenTouchChance) {
+                            spot.dataset.type = 'metal';
+                            spot.textContent = this.trashTypes.metal.emoji;
+                        } else {
+                            // Normal spawn logic
+                            const normalTypes = ['plastic', 'paper', 'metal', 'hazard'];
+                            const type = normalTypes[Math.floor(Math.random() * normalTypes.length)];
+                            spot.dataset.type = type;
+                            spot.textContent = this.trashTypes[type].emoji;
+                        }
                     }
                     
                     // Add hazardous class for non-recyclable items
@@ -1058,13 +1100,16 @@ class TrashTycoon {
         const type = spot.dataset.type;
         const trashInfo = this.trashTypes[type];
         
-        if (!trashInfo.recyclable) {
+        if (trashInfo.rare) {
+            this.rareItemsCollected[type]++;
+            this.ecoPoints += trashInfo.value;
+            this.money += trashInfo.value * 2;
+            this.showRemovalAnimation(spot, `+${trashInfo.value}🌱 +$${trashInfo.value * 2}`, '#ffd700');
+        } else if (!trashInfo.recyclable) {
             this.ecoPoints += 2;
             this.showRemovalAnimation(spot, '+2 🌱', '#43a047');
-            spot.classList.remove('hazardous');
-            this.hazardousItemsRemoved++; // Track hazardous items removed
+            this.hazardousItemsRemoved++;
         } else {
-            // Penalize for removing recyclable items
             this.ecoPoints = Math.max(0, this.ecoPoints - 1);
             this.showRemovalAnimation(spot, '-1 🌱', '#e53935');
         }
@@ -1072,7 +1117,7 @@ class TrashTycoon {
         // Clear the spot
         spot.textContent = '';
         spot.dataset.type = 'empty';
-        spot.classList.remove('hazardous');
+        spot.classList.remove('hazardous', 'valuable');
         spot.classList.add('spawning');
         spot.onclick = null;
         

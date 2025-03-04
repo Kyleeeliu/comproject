@@ -14,9 +14,19 @@ class GameTutorial {
                 highlight: ".collection-area"
             },
             {
+                title: "Valuable Items",
+                content: "Keep an eye out for rare items with a golden glow! These include electronics 💻, glass 🔮, gems 💎, gold 🏆, and batteries 🔋. They're worth much more than regular items!",
+                highlight: ".collection-grid"
+            },
+            {
                 title: "Sorting Bins",
-                content: "Collected recyclables go into these bins. Sell materials when bins are full to earn money.",
+                content: "Regular materials go into the standard bins. Rare items have their own special golden bins - check them out!",
                 highlight: ".sorting-area"
+            },
+            {
+                title: "Rare Item Bins",
+                content: "Rare items are automatically sorted into these special bins. Sell them for premium prices!",
+                highlight: ".rare-bin"
             },
             {
                 title: "Sustainability Goals",
@@ -25,12 +35,12 @@ class GameTutorial {
             },
             {
                 title: "Auto Collector",
-                content: "Upgrade your facility to automatically collect and process materials.",
+                content: "Upgrade your facility to automatically collect and process materials, including rare items!",
                 highlight: ".auto-collection-area"
             },
             {
                 title: "Upgrades",
-                content: "Purchase upgrades to improve your recycling operation and earn more money and eco points.",
+                content: "Purchase upgrades to improve your recycling operation. Some upgrades like Golden Touch can help you find more valuable materials!",
                 highlight: ".upgrades-panel"
             }
         ];

@@ -220,7 +220,7 @@ header h1 {
 
 .bins {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 15px;
     margin-top: 20px;
 }
@@ -1187,4 +1187,41 @@ header h1 {
 /* Remove the old tutorial overlay styles that blur the background */
 .tutorial-overlay {
     display: none;
+}
+
+/* Add golden glow for valuable items */
+.trash-spot.valuable {
+    box-shadow: 0 0 15px 5px rgba(255, 215, 0, 0.7);
+    border: 2px solid #ffd700;
+    background-color: rgba(255, 250, 220, 0.9);
+    animation: valuablePulse 2s infinite;
+}
+
+@keyframes valuablePulse {
+    0% {
+        box-shadow: 0 0 15px 5px rgba(255, 215, 0, 0.7);
+    }
+    50% {
+        box-shadow: 0 0 25px 10px rgba(255, 215, 0, 0.5);
+    }
+    100% {
+        box-shadow: 0 0 15px 5px rgba(255, 215, 0, 0.7);
+    }
+}
+
+/* Style for rare bins */
+.bin.rare-bin {
+    background-color: #fff8e1;
+    border: 2px solid #ffd700;
+}
+
+.bin.rare-bin:hover {
+    transform: scale(1.05);
+    border-color: #ff9800;
+    background-color: #fffde7;
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+}
+
+.bin.rare-bin h3 {
+    color: #ff8f00;
 } 
