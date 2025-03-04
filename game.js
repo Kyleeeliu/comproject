@@ -583,7 +583,8 @@ class TrashTycoon {
         spots.forEach(spot => {
             spot.textContent = '';
             spot.dataset.type = 'empty';
-            spot.classList.remove('active');
+            // Make sure to explicitly remove the hazardous class
+            spot.classList.remove('hazardous');
             spot.classList.add('spawning');
             spot.onclick = null;
             setTimeout(() => spot.classList.remove('spawning'), 300);
@@ -820,7 +821,8 @@ class TrashTycoon {
             spots.forEach(spot => {
                 spot.textContent = '';
                 spot.dataset.type = 'empty';
-                spot.classList.remove('active');
+                // Explicitly remove the hazardous class
+                spot.classList.remove('hazardous');
                 spot.classList.add('spawning');
             });
 
@@ -1036,10 +1038,8 @@ class TrashTycoon {
                         spot.textContent = this.trashTypes[spot.dataset.type].emoji;
                     }
                     
-                    spot.classList.add('active');
-                    
-                    // Apply hazard scanner effect only to main collection grid
-                    if (isMainGrid && this.hazardScanningLevel > 0 && !this.trashTypes[spot.dataset.type].recyclable) {
+                    // Add hazardous class for non-recyclable items
+                    if (!this.trashTypes[spot.dataset.type].recyclable) {
                         spot.classList.add('hazardous');
                     }
                     
@@ -1072,7 +1072,7 @@ class TrashTycoon {
         // Clear the spot
         spot.textContent = '';
         spot.dataset.type = 'empty';
-        spot.classList.remove('active');
+        spot.classList.remove('hazardous');
         spot.classList.add('spawning');
         spot.onclick = null;
         

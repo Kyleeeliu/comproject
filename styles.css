@@ -136,7 +136,6 @@ header h1 {
 }
 
 .trash-spot.active {
-    animation: bounce 0.5s ease infinite;
     opacity: 1;
     background-color: #f1f8e9;
 }
@@ -839,15 +838,9 @@ header h1 {
 }
 
 .trash-spot.hazardous {
-    background-color: rgba(255, 200, 200, 0.9) !important;
-    border: 2px solid #e53935 !important;
-    animation: pulse 2s infinite !important;
-}
-
-@keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(229, 57, 53, 0.4); }
-    70% { box-shadow: 0 0 0 10px rgba(229, 57, 53, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(229, 57, 53, 0); }
+    box-shadow: 0 0 10px 3px rgba(229, 57, 53, 0.7);
+    border: 2px solid #e53935;
+    background-color: rgba(255, 200, 200, 0.7);
 }
 
 .dev-console {
