@@ -26,36 +26,41 @@ class TrashTycoon {
 
         // Add upgrades configuration
         this.upgrades = {
-            autoCollector: {
-                level: 0,
-                baseCost: 50,
-                effect: () => this.startAutoCollection()
-            },
-            betterPrices: {
-                level: 0,
-                baseCost: 100,
-                effect: () => this.updatePrices()
-            },
-            largerStorage: {
-                level: 0,
-                baseCost: 75,
-                effect: () => this.updateCollectionAmount()
-            },
+            // Collection Upgrades
             quickCollection: {
                 level: 0,
                 baseCost: 100,
                 effect: () => this.updateCollectionSpeed()
+            },
+            smartStorage: {
+                level: 0,
+                baseCost: 150,
+                effect: () => this.updateStorageCapacity()
+            },
+            autoCollector: {
+                level: 0,
+                baseCost: 200,
+                effect: () => this.startAutoCollection()
+            },
+            
+            // Economic Upgrades
+            betterPrices: {
+                level: 0,
+                baseCost: 100,
+                effect: () => this.updatePrices() // Now affects rare items less
             },
             bulkSelling: {
                 level: 0,
                 baseCost: 150,
                 effect: () => this.updateBulkBonus()
             },
-            passiveIncome: {
+            rareValueBonus: { // New upgrade replacing passiveIncome
                 level: 0,
                 baseCost: 200,
-                effect: () => this.startPassiveIncome()
+                effect: () => this.updateRareValueBonus()
             },
+            
+            // Environmental Upgrades
             hazardProtection: {
                 level: 0,
                 baseCost: 150,
@@ -71,50 +76,49 @@ class TrashTycoon {
                 baseCost: 175,
                 effect: () => this.updateEnergyEfficiency()
             },
-            smartSorting: {
-                level: 0,
-                baseCost: 200,
-                effect: () => this.updateSpawnRates()
-            },
-            hazardScanner: {
+            
+            // Technology Upgrades
+            rareScanner: { // New upgrade replacing smartSorting
                 level: 0,
                 baseCost: 250,
-                effect: () => this.updateHazardScanning()
-            },
-            recyclingEfficiency: {
-                level: 0,
-                baseCost: 300,
-                effect: () => this.updateRecyclingBonus()
+                effect: () => this.updateRareScanner()
             },
             multiCollector: {
                 level: 0,
-                baseCost: 400,
+                baseCost: 300,
                 effect: () => this.updateMultiCollector()
             },
             autoSeller: {
                 level: 0,
-                baseCost: 350,
+                baseCost: 400,
                 effect: () => this.updateAutoSeller()
             },
-            smartStorage: {
-                level: 0,
-                baseCost: 275,
-                effect: () => this.updateStorageCapacity()
-            },
+            
+            // Special Upgrades
             goldenTouch: {
                 level: 0,
                 baseCost: 500,
-                effect: () => this.updateGoldenTouch()
+                effect: () => this.updateGoldenTouch() // Already balanced
             },
             ecoMagnet: {
                 level: 0,
                 baseCost: 450,
                 effect: () => this.updateEcoMagnet()
             },
-            cityInspiration: {
+            treasureHunter: { // New upgrade replacing cityInspiration
                 level: 0,
                 baseCost: 600,
-                effect: () => this.updateCityInspiration()
+                effect: () => this.updateTreasureHunter()
+            },
+            materialAnalyzer: {
+                level: 0,
+                baseCost: 275,
+                effect: () => this.updateMaterialAnalyzer()
+            },
+            recyclingAI: {
+                level: 0,
+                baseCost: 325,
+                effect: () => this.updateRecyclingAI()
             }
         };
 
@@ -481,10 +485,36 @@ class TrashTycoon {
             bin.addEventListener('click', () => this.sellTrash(bin.dataset.type));
         });
 
-        // Initialize upgrade buttons
-        document.querySelectorAll('.buy-upgrade').forEach(button => {
-            const upgrade = button.closest('.upgrade');
-            button.addEventListener('click', () => this.purchaseUpgrade(upgrade.dataset.id));
+        // Initialize all upgrade buttons
+        document.querySelectorAll('.upgrade').forEach(upgrade => {
+            const id = upgrade.dataset.id;
+            if (!id || !this.upgrades[id]) return;
+            
+            const upgradeInfo = this.upgrades[id];
+            const cost = Math.floor(upgradeInfo.baseCost * Math.pow(1.5, upgradeInfo.level));
+            
+            // Set initial text and state
+            const button = upgrade.querySelector('.buy-upgrade');
+            if (button) {
+                button.textContent = `Need $${cost}`;
+                button.disabled = true;
+                button.classList.add('cant-afford');
+                
+                // Add click handler
+                button.onclick = () => this.purchaseUpgrade(id);
+            }
+            
+            // Set initial level
+            const levelElement = upgrade.querySelector('.level');
+            if (levelElement) {
+                levelElement.textContent = '0';
+            }
+            
+            // Set initial cost
+            const costElement = upgrade.querySelector('.cost');
+            if (costElement) {
+                costElement.textContent = cost;
+            }
         });
 
         this.updateDisplay();
@@ -718,65 +748,47 @@ class TrashTycoon {
         setTimeout(() => container.remove(), 1000);
     }
 
-    purchaseUpgrade(upgradeId) {
-        const upgrade = this.upgrades[upgradeId];
-        const cost = this.calculateUpgradeCost(upgradeId);
-
-        if (this.money >= cost) {
-            this.money -= cost;
-            upgrade.level++;
-            
-            // Call the effect function
-            if (typeof upgrade.effect === 'function') {
-                upgrade.effect();
-            }
-            
-            // Update displays
-            this.updateDisplay();
-            this.updateUpgradesDisplay();  // Update all upgrade buttons
-            
-            // Show purchase animation
-            this.showPurchaseAnimation(cost, upgradeId);
-            this.updateSDGProgress();
-        }
-    }
-
-    calculateUpgradeCost(upgradeId) {
-        const upgrade = this.upgrades[upgradeId];
-        return Math.floor(upgrade.baseCost * Math.pow(1.5, upgrade.level));
+    purchaseUpgrade(id) {
+        const upgrade = this.upgrades[id];
+        if (!upgrade) return;
+        
+        // Calculate actual cost with exponential scaling
+        const cost = Math.floor(upgrade.baseCost * Math.pow(1.5, upgrade.level));
+        
+        // Check if player can afford it
+        if (this.money < cost) return;
+        
+        // Purchase the upgrade
+        this.money -= cost;
+        upgrade.level++;
+        upgrade.effect();
+        
+        this.updateDisplay();
+        this.updateUpgradesDisplay();
     }
 
     updateUpgradesDisplay() {
-        // Get all upgrade elements
-        const allUpgrades = document.querySelectorAll('.upgrade');
-        
-        allUpgrades.forEach(upgradeElement => {
-            const upgradeId = upgradeElement.dataset.id;
-            if (!upgradeId || !this.upgrades[upgradeId]) return;
-
-            const cost = this.calculateUpgradeCost(upgradeId);
-            const level = this.upgrades[upgradeId].level;
-
-            const costElement = upgradeElement.querySelector('.cost');
-            const levelElement = upgradeElement.querySelector('.level');
-            const buyButton = upgradeElement.querySelector('.buy-upgrade');
-
+        document.querySelectorAll('.upgrade').forEach(upgrade => {
+            const id = upgrade.dataset.id;
+            if (!id || !this.upgrades[id]) return;
+            
+            // Calculate current cost for this upgrade
+            const cost = Math.floor(this.upgrades[id].baseCost * Math.pow(1.5, this.upgrades[id].level));
+            
+            // Update level and cost display
+            const levelElement = upgrade.querySelector('.level');
+            const costElement = upgrade.querySelector('.cost');
+            
+            if (levelElement) levelElement.textContent = this.upgrades[id].level;
             if (costElement) costElement.textContent = cost;
-            if (levelElement) levelElement.textContent = level;
-            if (buyButton) {
+            
+            // Update button state
+            const button = upgrade.querySelector('.buy-upgrade');
+            if (button) {
                 const canAfford = this.money >= cost;
-                buyButton.disabled = !canAfford;
-                
-                // Update button text and style immediately
-                if (!canAfford) {
-                    buyButton.textContent = `Need $${cost}`;
-                    buyButton.classList.add('cant-afford');
-                    buyButton.title = `Need $${cost - this.money} more`;
-                } else {
-                    buyButton.textContent = 'Purchase';
-                    buyButton.classList.remove('cant-afford');
-                    buyButton.title = '';
-                }
+                button.disabled = !canAfford;
+                button.textContent = canAfford ? 'Purchase' : `Need $${cost}`;
+                button.classList.toggle('cant-afford', !canAfford);
             }
         });
     }
@@ -867,16 +879,18 @@ class TrashTycoon {
     }
 
     updatePrices() {
-        const multiplier = 1 + (this.upgrades.betterPrices.level * 0.25);
+        const multiplier = 1 + (0.15 * Math.log2(this.upgrades.betterPrices.level + 1));
         this.prices = {
+            // Regular items get full multiplier
             plastic: Math.floor(1 * multiplier),
             paper: Math.floor(2 * multiplier),
             metal: Math.floor(5 * multiplier),
-            computer: Math.floor(25 * multiplier),
-            glass: Math.floor(15 * multiplier),
-            gemstone: Math.floor(50 * multiplier),
-            gold: Math.floor(75 * multiplier),
-            battery: Math.floor(20 * multiplier)
+            // Rare items get reduced multiplier to prevent exponential scaling
+            computer: Math.floor(25 * (1 + (multiplier - 1) * 0.5)),
+            glass: Math.floor(15 * (1 + (multiplier - 1) * 0.5)),
+            gemstone: Math.floor(50 * (1 + (multiplier - 1) * 0.5)),
+            gold: Math.floor(75 * (1 + (multiplier - 1) * 0.5)),
+            battery: Math.floor(20 * (1 + (multiplier - 1) * 0.5))
         };
     }
 
@@ -1160,7 +1174,7 @@ class TrashTycoon {
 
     updateSpawnRates() {
         // Increase valuable spawn rate by 5% per level, caps at 50%
-        this.valuableSpawnRate = 0.2 + Math.min(0.3, this.upgrades.smartSorting.level * 0.05);
+        this.valuableSpawnRate = 0.2 + Math.min(0.3, this.upgrades.rareScanner.level * 0.05);
     }
 
     updateMultiCollector() {
@@ -1205,10 +1219,10 @@ class TrashTycoon {
         this.spawnRate = 0.3 + (0.07 * Math.log2(level + 1));
     }
 
-    updateCityInspiration() {
-        // 10% bonus per level, logarithmic scaling
-        const level = this.upgrades.cityInspiration.level;
-        this.cityBonus = 1 + (0.1 * Math.log2(level + 1));
+    updateTreasureHunter() {
+        // 5% chance per level to get bonus rare items when collecting, caps at 25%
+        const level = this.upgrades.treasureHunter.level;
+        this.treasureHunterChance = Math.min(0.25, level * 0.05);
     }
 
     updateCollectionSpeed() {
@@ -1221,39 +1235,28 @@ class TrashTycoon {
         this.bulkBonus = 1 + Math.min(0.5, this.upgrades.bulkSelling.level * 0.05);
     }
 
-    startPassiveIncome() {
-        // Base 0.5% of eco points per level, logarithmic scaling
-        if (!this.passiveIncomeInterval) {
-            this.passiveIncomeInterval = setInterval(() => {
-                const level = this.upgrades.passiveIncome.level;
-                const rate = 0.005 * Math.log2(level + 1);
-                const income = Math.floor(this.ecoPoints * rate);
-                if (income > 0) {
-                    this.money += income;
-                    this.updateDisplay();
-                }
-            }, 10000);
-        }
+    updateRareValueBonus() {
+        // 10% value increase per level, logarithmic scaling
+        const level = this.upgrades.rareValueBonus.level;
+        this.rareValueBonus = 1 + (0.1 * Math.log2(level + 1));
     }
 
-    updateEnergyEfficiency() {
-        // 20% faster auto collection per level, diminishing returns
-        const level = this.upgrades.greenEnergy.level;
-        this.energyEfficiency = 1 + (0.2 * Math.log2(level + 1));
-        if (this.autoCollectorInterval) {
-            this.startAutoCollection();
-        }
+    updateRareScanner() {
+        // Increases rare spawn rate by 2% per level, caps at 20% total
+        const level = this.upgrades.rareScanner.level;
+        this.baseRareSpawnRate = 0.08 + Math.min(0.12, level * 0.02);
     }
 
-    updateHazardScanning() {
-        // Highlight hazardous materials
-        this.hazardScanningLevel = this.upgrades.hazardScanner.level;
-        // Add visual effect in updateCollectionZone
+    updateMaterialAnalyzer() {
+        // 5% chance per level to upgrade a rare item to a more valuable one
+        const level = this.upgrades.materialAnalyzer.level;
+        this.materialAnalyzerChance = Math.min(0.3, level * 0.05);
     }
 
-    updateRecyclingBonus() {
-        // Chance for bonus materials
-        this.recyclingBonus = this.upgrades.recyclingEfficiency.level * 0.1;
+    updateRecyclingAI() {
+        // 10% bonus per level to rare item processing efficiency
+        const level = this.upgrades.recyclingAI.level;
+        this.recyclingAIBonus = 1 + (0.1 * Math.log2(level + 1));
     }
 
     initDevConsole() {
