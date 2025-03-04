@@ -1294,117 +1294,12 @@ class TrashTycoon {
     }
 
     startTutorial() {
-        this.tutorialStep = 0;
-        const tutorialSteps = [
-            {
-                title: "Welcome to EcoEmpire!",
-                content: "Learn how to play and make a positive environmental impact. This tutorial will guide you through the basics.",
-                highlight: null
-            },
-            {
-                title: "Collection Zone",
-                content: "Click on items in the collection zone to gather them. Green items are recyclable, while red items are hazardous.",
-                highlight: ".collection-area"
-            },
-            {
-                title: "Sorting Bins",
-                content: "Collected recyclables go into these bins. Sell materials when bins are full to earn money.",
-                highlight: ".sorting-area"
-            },
-            {
-                title: "Sustainability Goals",
-                content: "Complete quests to earn rewards and track your environmental impact. Click on quests to see details.",
-                highlight: ".sdg-progress"
-            },
-            {
-                title: "Auto Collector",
-                content: "Upgrade your facility to automatically collect and process materials.",
-                highlight: ".auto-collection-area"
-            }
-        ];
-
-        // Create tutorial overlay
-        const overlay = document.createElement('div');
-        overlay.className = 'tutorial-overlay';
-        overlay.innerHTML = `
-            <div class="tutorial-modal">
-                <div class="tutorial-content"></div>
-                <div class="tutorial-navigation">
-                    <button class="tutorial-button-nav" id="prevStep">Previous</button>
-                    <button class="tutorial-button-nav" id="nextStep">Next</button>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(overlay);
-
-        const updateTutorialContent = () => {
-            const step = tutorialSteps[this.tutorialStep];
-            const content = overlay.querySelector('.tutorial-content');
-            content.innerHTML = `
-                <h2>${step.title}</h2>
-                <p>${step.content}</p>
-            `;
-
-            // Remove any existing highlights
-            this.removeHighlights();
-
-            // Add new highlight if needed
-            if (step.highlight) {
-                const element = document.querySelector(step.highlight);
-                if (element) {
-                    const rect = element.getBoundingClientRect();
-                    const highlight = document.createElement('div');
-                    highlight.className = 'tutorial-highlight';
-
-                    // Add extra padding for sorting area
-                    const extraPadding = step.highlight === '.sorting-area' ? 24 : 16;
-                    
-                    highlight.style.top = `${rect.top - extraPadding}px`;
-                    highlight.style.left = `${rect.left - extraPadding}px`;
-                    highlight.style.width = `${rect.width + (extraPadding * 2)}px`;
-                    highlight.style.height = `${rect.height + (extraPadding * 2)}px`;
-                    
-                    // Adjust z-index to ensure highlight appears behind tooltips
-                    highlight.style.zIndex = '998';
-                    
-                    document.body.appendChild(highlight);
-                }
-            }
-
-            // Update navigation buttons
-            const prevButton = overlay.querySelector('#prevStep');
-            const nextButton = overlay.querySelector('#nextStep');
-            prevButton.disabled = this.tutorialStep === 0;
-            nextButton.textContent = this.tutorialStep === tutorialSteps.length - 1 ? 'Finish' : 'Next';
-        };
-
-        // Add helper method to remove highlights
-        this.removeHighlights = () => {
-            const highlights = document.querySelectorAll('.tutorial-highlight');
-            highlights.forEach(h => h.remove());
-        };
-
-        // Update the next button handler to ensure cleanup
-        overlay.querySelector('#nextStep').onclick = () => {
-            if (this.tutorialStep < tutorialSteps.length - 1) {
-                this.tutorialStep++;
-                updateTutorialContent();
-            } else {
-                this.removeHighlights(); // Remove highlights before removing overlay
-                overlay.remove();
-            }
-        };
-
-        // Add cleanup on tutorial exit
-        window.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                this.removeHighlights();
-                overlay.remove();
-            }
-        }, { once: true });
-
-        // Initialize first step
-        updateTutorialContent();
+        // Remove the old tutorial implementation
+        if (window.startTutorial) {
+            this.activeTutorial = window.startTutorial(this);
+        } else {
+            console.error("Tutorial system not loaded");
+        }
     }
 }
 
