@@ -894,11 +894,11 @@ class TrashTycoon {
             paper: Math.floor(2 * multiplier),
             metal: Math.floor(5 * multiplier),
             // Rare items get reduced multiplier to prevent exponential scaling
-            computer: Math.floor(25 * (1 + (multiplier - 1) * 0.5)),
-            glass: Math.floor(15 * (1 + (multiplier - 1) * 0.5)),
-            gemstone: Math.floor(50 * (1 + (multiplier - 1) * 0.5)),
-            gold: Math.floor(75 * (1 + (multiplier - 1) * 0.5)),
-            battery: Math.floor(20 * (1 + (multiplier - 1) * 0.5))
+            computer: Math.floor(12.5 * (1 + (multiplier - 1) * 0.5)),
+            glass: Math.floor(7.5 * (1 + (multiplier - 1) * 0.5))/2,
+            gemstone: Math.floor(25 * (1 + (multiplier - 1) * 0.5)),
+            gold: Math.floor(37.5 * (1 + (multiplier - 1) * 0.5)),
+            battery: Math.floor(10 * (1 + (multiplier - 1) * 0.5))
         };
     }
 
