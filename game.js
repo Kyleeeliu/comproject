@@ -1125,7 +1125,7 @@ class TrashTycoon {
         if (trashInfo.rare) {
             this.rareItemsCollected[type]++;
             this.ecoPoints += trashInfo.value;
-            this.money += math.floor(trashInfo.value / 2);
+            this.money += trashInfo.value;
             this.showRemovalAnimation(spot, `+${trashInfo.value}🌱 +$${trashInfo.value * 2}`, '#ffd700');
         } else if (!trashInfo.recyclable) {
             this.ecoPoints += 2;
