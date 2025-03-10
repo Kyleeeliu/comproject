@@ -1125,7 +1125,7 @@ class TrashTycoon {
         if (trashInfo.rare) {
             this.rareItemsCollected[type]++;
             this.ecoPoints += trashInfo.value;
-            this.money += trashInfo.value * 2;
+            this.money += math.floor(trashInfo.value / 2);
             this.showRemovalAnimation(spot, `+${trashInfo.value}🌱 +$${trashInfo.value * 2}`, '#ffd700');
         } else if (!trashInfo.recyclable) {
             this.ecoPoints += 2;
@@ -1214,10 +1214,10 @@ class TrashTycoon {
         this.storageMultiplier = 1 + (0.25 * Math.min(level, 10) + 0.1 * Math.max(0, level - 10));
     }
 
-    updateGoldenTouch() {
+    updateenTouch() {
         // Logarithmic scaling from 5% to 50%
         const maxChance = 0.5;
-        const level = this.upgrades.goldenTouch.level;
+        const level = this.upgrades.enTouch.level;
         this.goldenTouchChance = Math.min(maxChance, 0.05 * Math.log2(level + 1));
     }
 
