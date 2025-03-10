@@ -659,25 +659,33 @@ class TrashTycoon {
     }
 
     sellTrash(type) {
-        const amount = this.trashItems[type];
-        if (amount > 0) {
-            const basePrice = this.prices[type];
-            const bulkBonus = amount >= 100 ? this.bulkBonus : 1;
-            const totalPrice = Math.floor(amount * basePrice * bulkBonus);
-            
-            this.money += totalPrice;
-            this.trashItems[type] = 0;
-            
-            // Update total sales tracking
-            if (this.totalSales[type] !== undefined) {
-                this.totalSales[type] += amount;
-            }
-            
-            this.updateDisplay();
-            this.updateUpgradesDisplay();
-            this.updateSDGProgress();
+    const amount = this.trashItems[type];
+    if (amount > 0) {
+        const basePrice = this.prices[type] || 0; // Ensure basePrice is never undefined
+        const bulkBonus = (amount >= 100) ? (this.bulkBonus || 1) : 1; // Default to 1 if undefined
+
+        const totalPrice = Math.floor(amount * basePrice * bulkBonus);
+
+        // 🚨 Prevent NaN errors
+        if (isNaN(totalPrice) || totalPrice < 0) {
+            console.error(`Invalid total price: ${totalPrice}`);
+            return;
         }
+
+        this.money += totalPrice;
+        this.trashItems[type] = 0;
+
+        // Update total sales tracking
+        if (this.totalSales[type] !== undefined) {
+            this.totalSales[type] += amount;
+        }
+
+        this.updateDisplay();
+        this.updateUpgradesDisplay();
+        this.updateSDGProgress();
     }
+}
+
 
     updateDisplay() {
         document.getElementById('money').textContent = this.money;
